@@ -2,71 +2,71 @@
 <html lang="en">
 
 <head>
-<meta charset="UTF-8" />
-<meta http-equiv="X-UA-Compatible" content="IE=edge" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Sigma example : Node drag'n'drop, with mouse graph creation</title>
+	<meta charset="UTF-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Sigma example : Node drag'n'drop, with mouse graph creation</title>
 </head>
 
 <body>
-<style>
-html,
-body {
-font-family: sans-serif;
-background: #f9f9f9;
-}
+	<style>
+		html,
+		body {
+			font-family: sans-serif;
+			background: #f9f9f9;
+		}
 
-main {
-margin: auto;
-max-width: 1920px;
-}
+		main {
+			margin: auto;
+			max-width: 1920px;
+		}
 
-#sigma-container {
-height: 1080px;
-background: white;
-display: flex;
-}
+		#sigma-container {
+			height: 1080px;
+			background: white;
+			display: flex;
+		}
 
-#stopBtn {
-/* position: absolute; */
-/* top: 0; */
-font-size: 20px;
-}
+		#stopBtn {
+			/* position: absolute; */
+			/* top: 0; */
+			font-size: 20px;
+		}
 
-#interface {
-display: inline-block;
-position: absolute;
-top: 10px;
-left: 10px;
-height: fit-content;
-}
-</style>
-<main>
-<div id="sigma-container"></div>
-<div id="interface">
-<fieldset>
-<input type="search" id="search-input" list="suggestions" placeholder="Try searching for a node..." />
-</fieldset>
-<datalist id="suggestions"></datalist>
-<fieldset>
-<button type="submit" id="resetBtn">Reset graph</button>
-<button type="button" id="fa2">Stop layout ⏸</button>
-</fieldset>
+		#interface {
+			display: inline-block;
+			position: absolute;
+			top: 10px;
+			left: 10px;
+			height: fit-content;
+		}
+	</style>
+	<main>
+		<div id="sigma-container"></div>
+		<div id="interface">
+			<fieldset>
+				<input type="search" id="search-input" list="suggestions" placeholder="Try searching for a node..." />
+			</fieldset>
+			<datalist id="suggestions"></datalist>
+			<fieldset>
+				<button type="submit" id="resetBtn">Reset graph</button>
+				<button type="button" id="fa2">Stop layout ⏸</button>
+			</fieldset>
 
-<fieldset>
-<h4>Edges renderer</h4>
-<div>
-<input type="radio" name="edges-renderer" id="edges-default" value="edges-default" />
-<label for="edges-default">Default</label>
-</div>
-<div>
-<input type="radio" name="edges-renderer" id="edges-fast" value="edges-fast" checked />
-<label for="edges-fast">Faster (only 1px thick edges)</label>
-</div>
-</fieldset>
-</div>
-</main>
-<script src="build/bundle.js"></script>
+			<fieldset>
+				<h6>Edges renderer</h6>
+				<div>
+					<input type="radio" name="edges-renderer" id="edges-default" value="edges-default" />
+					<label for="edges-default">Default</label>
+				</div>
+				<div>
+					<input type="radio" name="edges-renderer" id="edges-fast" value="edges-fast" checked />
+					<label for="edges-fast">Faster (only 1px thick edges)</label>
+				</div>
+			</fieldset>
+		</div>
+	</main>
+	<script src="build/bundle.js"></script>
 </body>
 
 </html>
