@@ -4,13 +4,15 @@
   "description": "Sigma example : Node drag'n'drop, with mouse graph creation",
   "main": "index.js",
   "scripts": {
-    "start": "kotatsu serve --typescript index.ts --public / ./public"
+    "start": "kotatsu serve --typescript index.ts --public / ./public -p 9000"
   },
   "license": "MIT",
   "dependencies": {
     "chroma-js": "^2.1.2",
     "graphology": "^0.23.0",
     "graphology-layout-force": "0.2.2",
+    "graphology-shortest-path": "^2.0.2",
+    "graphology-simple-path": "^0.2.0",
     "jquery": "^3.6.3",
     "sigma": "latest",
     "uuid": "^8.3.2"

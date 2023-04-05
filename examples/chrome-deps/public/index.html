@@ -13,7 +13,7 @@
 		html,
 		body {
 			font-family: sans-serif;
-			background: #f9f9f9;
+			background: #888;
 		}
 
 		main {
@@ -23,7 +23,6 @@
 
 		#sigma-container {
 			height: 1080px;
-			background: white;
 			display: flex;
 		}
 
@@ -40,21 +39,48 @@
 			left: 10px;
 			height: fit-content;
 		}
+
+	*{
+		color: white;
+		border-radius: 10px;
+		background: rgba(0, 0, 0, 0);
+		border-color: white;
+	}
+	button {
+		border-color: white;
+
+	}
 	</style>
 	<main>
 		<div id="sigma-container"></div>
 		<div id="interface">
 			<fieldset>
 				<input type="search" id="search-input" list="suggestions" placeholder="Try searching for a node..." />
+				<br/>
+				<input type="search" id="search-input2" list="suggestions2" placeholder="Try searching for a node..." />
 			</fieldset>
 			<datalist id="suggestions"></datalist>
+			<datalist id="suggestions2"></datalist>
 			<fieldset>
 				<button type="submit" id="resetBtn">Reset graph</button>
 				<button type="button" id="fa2">Stop layout ⏸</button>
 			</fieldset>
+			
+			<fieldset>
+				<input type="number" max="9" min="0" maxlength="1" id="layerNum" value="1"></input>
+				<button type="button" id="addLayer">Add layer</button>
+				<br/>
+				<input type="checkbox" id="inn" checked>
+				<b></b>In neighbors</b  >
+				<br/>
+				<input type="checkbox" id="outn">Out neighbors</input>
+				<br/>
+				<ul id="layerList">
+				</ul>
+			</fieldset>
 
 			<fieldset>
-				<h6>Edges renderer</h6>
+				<h4>Edges renderer</h4>
 				<div>
 					<input type="radio" name="edges-renderer" id="edges-default" value="edges-default" />
 					<label for="edges-default">Default</label>
