@@ -61,6 +61,10 @@ window.scrollTo({
   top: 0,
 });
 
+window.addEventListener('contextmenu', event => {
+    event.preventDefault()
+});
+
 const removeParent = (elem: Node) => {
   elem.parentNode.parentNode.removeChild(elem.parentNode);
 };
