@@ -14,6 +14,7 @@
 		body {
 			font-family: sans-serif;
 			background: #888;
+			font-size: 13;
 		}
 
 		main {
@@ -48,7 +49,6 @@
 	}
 	button {
 		border-color: white;
-
 	}
 	</style>
 	<main>
@@ -57,7 +57,7 @@
 			<fieldset>
 				<input type="search" id="search-input0" list="suggestions0" placeholder="Try searching for a node..." />
 				<br/>
-				<button id="reroute">🗘</button>
+				<button id="reroute">⇅</button>
 				<br/>
 				<input type="search" id="search-input1" list="suggestions1" placeholder="Try searching for a node..." />
 			</fieldset>
@@ -74,7 +74,7 @@
 				<button type="button" id="addLayer">Add layer</button>
 				<br/>
 				<input type="checkbox" id="inn" checked>
-				<b></b>In neighbors</b  >
+				<b></b>In neighbors</b>
 				<br/>
 				<input type="checkbox" id="outn">Out neighbors</input>
 				<br/>
@@ -92,6 +92,10 @@
 					<input type="radio" name="edges-renderer" id="edges-fast" value="edges-fast" checked />
 					<label for="edges-fast">Faster (only 1px thick edges)</label>
 				</div>
+			</fieldset>
+			<fieldset>
+				<h4>Shortest path</h4>
+				<div id="pathList"></div>
 			</fieldset>
 		</div>
 	</main>

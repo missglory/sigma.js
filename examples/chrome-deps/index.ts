@@ -19,9 +19,6 @@ Promise.all([fetch("./chrome_deps.json")])
 const searchInputs = [0, 1].map((v) => {
   return document.getElementById("search-input" + v.toString()) as HTMLInputElement;
 });
-// const searchSuggestions = [0, 1].map(v => {
-//   return document.getElementById("suggestions"  + v.toString()) as HTMLDataListElement;
-// })
 const searchSuggestions = document.getElementById("suggestions") as HTMLDataListElement;
 
 const g_state = {
@@ -33,23 +30,26 @@ const g_state = {
 const layers = new Set([0]);
 
 const getHeatMapColor = (v: number) => {
-  v = Math.min(v, 0.99999);
+  v = Math.min(v, 1.1);
   const colorScale = [
-    ['0.00000', 'rgb(165,0,38)'],
-    ['0.11111', 'rgb(215,48,39)'],
-    ['0.22222', 'rgb(244,109,67)'],
-    ['0.33333', 'rgb(253,174,97)'],
-    ['0.44444', 'rgb(254,224,144)'],
-    ['0.55555', 'rgb(224,243,248)'],
-    ['0.66666', 'rgb(171,217,233)'],
-    ['0.77777', 'rgb(116,173,209)'],
-    ['0.88888', 'rgb(69,117,180)'],
-    ['1.00000', 'rgb(49,54,149)']
+    ["0.00000", "rgb(165,0,38)"],
+    ["0.11111", "rgb(215,48,39)"],
+    ["0.22222", "rgb(244,109,67)"],
+    ["0.33333", "rgb(253,174,97)"],
+    ["0.44444", "rgb(254,224,144)"],
+    ["0.55555", "rgb(224,243,248)"],
+    ["0.66666", "rgb(171,217,233)"],
+    ["0.77777", "rgb(116,173,209)"],
+    ["0.88888", "rgb(69,117,180)"],
+    ["1.00000", "rgb(49,54,149)"],
+    ["1.10000", "rgb(29,10,100)"]
   ];
   let i = 0;
-  while (parseFloat(colorScale[i][0]) < v) { i++; }    
+  while (parseFloat(colorScale[i][0]) < v) {
+    i++;
+  }
   return colorScale[Math.min(colorScale.length, i)][1];
-}
+};
 
 window.addEventListener("keydown", function (e) {
   if (e.keyCode == 32) {
@@ -61,8 +61,8 @@ window.scrollTo({
   top: 0,
 });
 
-window.addEventListener('contextmenu', event => {
-    event.preventDefault()
+window.addEventListener("contextmenu", (event) => {
+  event.preventDefault();
 });
 
 const removeParent = (elem: Node) => {
@@ -204,12 +204,12 @@ function start(dataRaw) {
   });
 
   document.getElementById("reroute").onclick = (ev) => {
-    const vals = searchInputs.map(input => input.value);
+    const vals = searchInputs.map((input) => input.value);
     searchInputs.forEach((input, index) => {
-      input.value = vals[(index + 1 ) % vals.length];
-      input.dispatchEvent(new Event('input'));
-    })
-  }
+      input.value = vals[(index + 1) % vals.length];
+      input.dispatchEvent(new Event("input"));
+    });
+  };
 
   document.getElementById("inn").onclick = (ev) => {
     state.inNeighbors = (ev.target as HTMLInputElement).checked;
@@ -289,10 +289,10 @@ function start(dataRaw) {
 
   const clickFunc = (event, index) => {
     searchInputs[index].select();
-    const v = '^' + event.node + '$';
+    const v = "^" + event.node + "$";
     searchInputs[index].value = v;
-    searchInputs[index].dispatchEvent(new Event('input'));
-  }
+    searchInputs[index].dispatchEvent(new Event("input"));
+  };
   renderer.on("clickNode", (e) => {
     clickFunc(e, 0);
   });
@@ -341,31 +341,40 @@ function start(dataRaw) {
     .join("\n");
 
   async function assignPath(node1, node2) {
-    const paths = allSimplePaths(graph, node1, node2, {maxDepth: 5});
-    // if (paths.length) { return paths[0]; }
-    // return [];
-    if (paths.length) { 
-      state.shortestPath = new Map(paths[0].map((node, index) => [node, index / paths[0].length])); 
-      // renderer.refresh();
+    const paths = allSimplePaths(graph, node1, node2, { maxDepth: 7 });
+    const pathsElem = document.getElementById("pathList");
+    pathsElem.replaceChildren();
+    if (paths.length) {
+      state.shortestPath = new Map(paths[0].map((node, index) => [node, index / paths[0].length]));
+      paths[0].forEach((path, index) => {
+        const el = document.createElement("tt");
+        el.innerHTML = path; 
+        el.style.borderColor = getHeatMapColor(index / paths[0].length);
+        el.style.borderStyle = "solid";
+        el.style.padding = "3px";
+        const divWrap = document.createElement("div");
+        divWrap.style.marginBottom = "8px";
+        divWrap.appendChild(el);
+        pathsElem.appendChild(divWrap);
+      })
       return;
     }
+    
     state.shortestPath = new Map();
-    // renderer.refresh();
   }
 
   function setSearchQuery(query: string, selection: number) {
-    
     state.shortestPath = new Map();
     if (!query) {
       state.selected[selection] = { selected: undefined, suggest: undefined };
       renderer.refresh();
       return;
     }
-    
+
     if (query[0] === '"') {
       query = "^" + query.substring(1);
     }
-    
+
     if (query.at(-1) === '"') {
       query = query.substring(0, query.length - 1) + "$";
     }
@@ -390,12 +399,10 @@ function start(dataRaw) {
         assignPath(selectedOther, state.selected[selection].selected);
       }
 
-      // try{
-        const nodePosition = renderer.getNodeDisplayData(state.selected[selection].selected) as Coordinates;
-        renderer.getCamera().animate(nodePosition, {
-          duration: 500,
-        });
-      // } catch (e) {}
+      const nodePosition = renderer.getNodeDisplayData(state.selected[selection].selected) as Coordinates;
+      renderer.getCamera().animate(nodePosition, {
+        duration: 500,
+      });
     } else {
       state.selected[selection] = { selected: undefined, suggest: new Set(suggestions.map(({ id }) => id)) };
     }
@@ -436,10 +443,11 @@ function start(dataRaw) {
   });
 
   const nodeReducerSelector = (node1, node2) => {
-    return state.shortestPath.has(node1) ||
-    state.shortestPath.size === 0 && (
-      (state.inNeighbors && graph.areInNeighbors(node1, node2)) ||
-      (state.outNeighbors && graph.areOutNeighbors(node1, node2))
+    return (
+      state.shortestPath.has(node1) ||
+      (state.shortestPath.size === 0 &&
+        ((state.inNeighbors && graph.areInNeighbors(node1, node2)) ||
+          (state.outNeighbors && graph.areOutNeighbors(node1, node2))))
     );
   };
 
@@ -480,7 +488,7 @@ function start(dataRaw) {
       }
       res.highlighted = true;
       return res;
-    } 
+    }
     if (state.selected[0].suggest && !state.selected[0].suggest.has(node)) {
       res.label = "";
       res.color = "#877";

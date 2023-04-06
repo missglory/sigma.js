@@ -8,11 +8,7 @@
 ```bash
 npm i && cd examples/chrome_deps && npm start
 ```
-then
+then e. g.
 ```bash
-firefox 3000
-```
-or
-```bash
-firefox 9000
+firefox localhost:3000
 ```
