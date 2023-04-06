@@ -16,10 +16,13 @@ Promise.all([fetch("./chrome_deps.json")])
   .then((rs) => Promise.all(rs.map((r) => r.json())))
   .then(Function.prototype.apply.bind(start, start));
 
+const searchInputs = [0, 1].map((v) => {
+  return document.getElementById("search-input" + v.toString()) as HTMLInputElement;
+});
+// const searchSuggestions = [0, 1].map(v => {
+//   return document.getElementById("suggestions"  + v.toString()) as HTMLDataListElement;
+// })
 const searchSuggestions = document.getElementById("suggestions") as HTMLDataListElement;
-const searchSuggestions2 = document.getElementById("suggestions2") as HTMLDataListElement;
-const searchInput = document.getElementById("search-input") as HTMLInputElement;
-const searchInput2 = document.getElementById("search-input2") as HTMLInputElement;
 
 const g_state = {
   edgesRenderer: document.querySelector<HTMLInputElement>('[name="edges-renderer"]:checked')?.value,
@@ -28,6 +31,25 @@ const g_state = {
 // let DELIMETER = ":";
 
 const layers = new Set([0]);
+
+const getHeatMapColor = (v: number) => {
+  v = Math.min(v, 0.99999);
+  const colorScale = [
+    ['0.00000', 'rgb(165,0,38)'],
+    ['0.11111', 'rgb(215,48,39)'],
+    ['0.22222', 'rgb(244,109,67)'],
+    ['0.33333', 'rgb(253,174,97)'],
+    ['0.44444', 'rgb(254,224,144)'],
+    ['0.55555', 'rgb(224,243,248)'],
+    ['0.66666', 'rgb(171,217,233)'],
+    ['0.77777', 'rgb(116,173,209)'],
+    ['0.88888', 'rgb(69,117,180)'],
+    ['1.00000', 'rgb(49,54,149)']
+  ];
+  let i = 0;
+  while (parseFloat(colorScale[i][0]) < v) { i++; }    
+  return colorScale[Math.min(colorScale.length, i)][1];
+}
 
 window.addEventListener("keydown", function (e) {
   if (e.keyCode == 32) {
@@ -56,7 +78,7 @@ function start(dataRaw) {
 
   interface State {
     hoveredNode?: string;
-    searchQuery: string;
+    searchQuery: string[];
     sq2: string;
     inNeighbors: boolean;
     outNeighbors: boolean;
@@ -64,12 +86,13 @@ function start(dataRaw) {
     // State derived from query:
     selectedNeighbor?: string;
     selected: Selection[];
+    shortestPath: Map<string, number>;
 
     // State derived from hovered node:
     hoveredNeighbors?: Set<string>;
   }
   const state: State = {
-    searchQuery: "",
+    searchQuery: ["", ""],
     sq2: "",
     inNeighbors: true,
     outNeighbors: false,
@@ -77,6 +100,7 @@ function start(dataRaw) {
       { selected: undefined, suggest: undefined },
       { selected: undefined, suggest: undefined },
     ],
+    shortestPath: new Map<string, number>(),
   };
 
   Object.keys(dataRaw).forEach((rootNode) => {
@@ -175,14 +199,22 @@ function start(dataRaw) {
     });
   });
 
+  document.getElementById("reroute").onclick = (ev) => {
+    const vals = searchInputs.map(input => input.value);
+    searchInputs.forEach((input, index) => {
+      input.value = vals[(index + 1 ) % vals.length];
+      input.dispatchEvent(new Event('input'));
+    })
+  }
+
   document.getElementById("inn").onclick = (ev) => {
-    console.log((ev.target as HTMLInputElement).checked);
     state.inNeighbors = (ev.target as HTMLInputElement).checked;
+    renderer.refresh();
   };
 
   document.getElementById("outn").onclick = (ev) => {
-    console.log((ev.target as HTMLInputElement).checked);
     state.outNeighbors = (ev.target as HTMLInputElement).checked;
+    renderer.refresh();
   };
 
   const addLayerButton = document.getElementById("addLayer");
@@ -251,11 +283,17 @@ function start(dataRaw) {
     graph.setNodeAttribute(draggedNode, "highlighted", true);
   });
 
+  const clickFunc = (event, index) => {
+    searchInputs[index].select();
+    const v = '^' + event.node + '$';
+    searchInputs[index].value = v;
+    searchInputs[index].dispatchEvent(new Event('input'));
+  }
   renderer.on("clickNode", (e) => {
-    searchInput.select();
-    const v = '"' + e.node + '"';
-    searchInput.value = v;
-    setSearchQuery(v, 1);
+    clickFunc(e, 0);
+  });
+  renderer.on("rightClickNode", (e) => {
+    clickFunc(e, 1);
   });
 
   // On mouse move, if the drag mode is enabled, we change the position of the draggedNode
@@ -298,58 +336,69 @@ function start(dataRaw) {
     .map((node) => `<option value="${graph.getNodeAttribute(node, "label")}"></option>`)
     .join("\n");
 
-  searchSuggestions2.innerHTML = graph
-    .nodes()
-    .map((node) => `<option value="${graph.getNodeAttribute(node, "label")}"></option>`)
-    .join("\n");
+  async function assignPath(node1, node2) {
+    const paths = allSimplePaths(graph, node1, node2, {maxDepth: 5});
+    // if (paths.length) { return paths[0]; }
+    // return [];
+    if (paths.length) { 
+      state.shortestPath = new Map(paths[0].map((node, index) => [node, index / paths[0].length])); 
+      // renderer.refresh();
+      return;
+    }
+    state.shortestPath = new Map();
+    // renderer.refresh();
+  }
 
-  // Actions:
   function setSearchQuery(query: string, selection: number) {
-    // if (selection === 1) {
-    //   selection = state.selNode;
-    // }
-    // if (selection === 2) {
-    //   selection = state.selNei;
-    // }
-    selection--;
+    
+    state.shortestPath = new Map();
+    if (!query) {
+      state.selected[selection] = { selected: undefined, suggest: undefined };
+      renderer.refresh();
+      return;
+    }
+    
+    if (query[0] === '"') {
+      query = "^" + query.substring(1);
+    }
+    
+    if (query.at(-1) === '"') {
+      query = query.substring(0, query.length - 1) + "$";
+    }
 
+    state.searchQuery[selection] = query;
+    if (searchInputs[selection].value !== query) {
+      searchInputs[selection].value = query;
+    }
 
-    state.searchQuery = query;
+    const suggestions = graph
+      .nodes()
+      .map((n) => ({
+        id: n,
+        label: "^" + n + "$",
+      }))
+      .filter(({ label }) => label.includes(query));
 
-    if (searchInput.value !== query) searchInput.value = query;
+    if (suggestions.length === 1 && suggestions[0].label === query) {
+      state.selected[selection] = { selected: suggestions[0].id, suggest: undefined };
+      const selectedOther = state.selected[(selection + 1) % 2]?.selected;
+      if (selectedOther !== undefined) {
+        assignPath(selectedOther, state.selected[selection].selected);
+      }
 
-    if (query) {
-      const lcQuery = query;
-      const suggestions = graph
-        .nodes()
-        .map((n) => ({
-          id: n,
-          label: lcQuery.length > 0 && lcQuery[0] === '"' && lcQuery.at(-1) === '"' ? '"' + n + '"' : n,
-        }))
-        .filter(({ label }) => label.includes(lcQuery));
-
-      // If we have a single perfect match, them we remove the suggestions, and
-      // we consider the user has selected a node through the datalist
-      // autocomplete:
-      if (suggestions.length === 1 && suggestions[0].label === query) {
-        state.selected[selection] = { selected: suggestions[0].id, suggest: undefined };
-
-        const nodePosition = renderer.getNodeDisplayData(state.selected[selection]) as Coordinates;
+      // try{
+        const nodePosition = renderer.getNodeDisplayData(state.selected[selection].selected) as Coordinates;
         renderer.getCamera().animate(nodePosition, {
           duration: 500,
         });
-      }
-      else {
-        state.selected[selection] = { selected: undefined, suggest: new Set(suggestions.map(({ id }) => id)) };
-      }
-    }
-    else {
-      state.selected[selection] = { selected: undefined, suggest: undefined };
+      // } catch (e) {}
+    } else {
+      state.selected[selection] = { selected: undefined, suggest: new Set(suggestions.map(({ id }) => id)) };
     }
 
-    // Refresh rendering:
     renderer.refresh();
   }
+
   function setHoveredNode(node?: string) {
     if (node) {
       state.hoveredNode = node;
@@ -362,18 +411,19 @@ function start(dataRaw) {
     renderer.refresh();
   }
 
-  // Bind search input interactions:
-  searchInput2.addEventListener("input", () => {
-    setSearchQuery(searchInput2.value || "", 2);
-  });
-  searchInput.addEventListener("input", () => {
-    setSearchQuery(searchInput.value || "", 1);
-  });
-  searchInput.addEventListener("blur", () => {
-    // setSearchQuery("");
+  searchInputs.forEach((searchInput, index) => {
+    searchInput.addEventListener("input", (e) => {
+      setSearchQuery(searchInput.value || "", index);
+      if (state.selected[index].selected !== undefined) {
+        (e.target as HTMLInputElement).style.color = "rgb(128,255,220)";
+        (e.target as HTMLInputElement).style.borderColor = "rgb(128,255,220)";
+      } else {
+        (e.target as HTMLInputElement).style.color = "white";
+        (e.target as HTMLInputElement).style.borderColor = "white";
+      }
+    });
   });
 
-  // Bind graph interactions:
   renderer.on("enterNode", ({ node }) => {
     setHoveredNode(node);
   });
@@ -382,8 +432,8 @@ function start(dataRaw) {
   });
 
   const nodeReducerSelector = (node1, node2) => {
-    // console.log(graphDists.get(node1))
-    return (
+    return state.shortestPath.has(node1) ||
+    state.shortestPath.size === 0 && (
       (state.inNeighbors && graph.areInNeighbors(node1, node2)) ||
       (state.outNeighbors && graph.areOutNeighbors(node1, node2))
     );
@@ -417,31 +467,19 @@ function start(dataRaw) {
 
     if (state.hoveredNeighbors && !state.hoveredNeighbors.has(node) && state.hoveredNode !== node) {
       res.label = "";
-      // res.color = "#f6f6f6";
       res.color = "#877";
     }
-    // if (state.selectedNode === node || nodeReducerSelector(node, state.selectedNode)) {
     if (state.selected[0].selected === node || nodeReducerSelector(node, state.selected[0].selected)) {
-      res.highlighted = true;
-      // if (state.selectedNode === node) {
-      //   const layers = scaryFunction(node);
-      // }
-      if (state.selected[0].selected === node) {
-
-        console.log("test");
-        console.log(graph.nodes[0])
-        // const paths = allSimplePaths(graph, node, graph.nodes[0], { maxDepth: 5 });
-        // paths.forEach((path) => {
-        //   consolepath
-        // })
-
-        // if (paths.length) console.log(paths[0]);
+      if (state.shortestPath.has(node)) {
+        const v = state.shortestPath.get(node);
+        res.color = getHeatMapColor(v);
       }
-      // } else if (state.selNode.suggest && !state.selNode.suggest.has(node)) {
-    } else if (state.selected[0].suggest && !state.selected[0].suggest.has(node)) {
+      res.highlighted = true;
+      return res;
+    } 
+    if (state.selected[0].suggest && !state.selected[0].suggest.has(node)) {
       res.label = "";
-      // res.color = "#f6f6f6";
-      res.color = "#440000";
+      res.color = "#877";
     }
 
     return res;
