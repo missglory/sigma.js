@@ -1,0 +1,16 @@
+{
+  // "extends": @tsconfig/svelte/tsconfig.json", "@tsconfig/svelte/tsconfig.json"],
+	// "extends": "@tsconfig/svelte/tsconfig.json",
+	"extends": "../tsconfig.json",
+  // "include": [
+  //   "src/**/*",
+  //   // "public"
+  // ],
+  "exclude": [
+    "node_modules/*"
+  ],
+	"include": ["../../external-types/**/*", "../../examples/**/*", "../../src/**/*"],
+	"compilerOptions": {
+		"typeRoots": ["../../node_modules/@types/", "../../external-types/"],
+	},
+}

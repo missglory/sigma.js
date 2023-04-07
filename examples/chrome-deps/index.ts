@@ -392,7 +392,7 @@ function start(dataRaw) {
       }))
       .filter(({ label }) => label.includes(query));
 
-    if (suggestions.length === 1 && suggestions[0].label === query) {
+    if (suggestions.length === 1 && suggestions[0].label.includes(query)) {
       state.selected[selection] = { selected: suggestions[0].id, suggest: undefined };
       const selectedOther = state.selected[(selection + 1) % 2]?.selected;
       if (selectedOther !== undefined) {

@@ -6,9 +6,12 @@
 ![Screenshot](04-04.png)
 
 ```bash
-npm i && cd examples/chrome_deps && npm start
+npm i \
+&& cd examples/chrome_deps \
+&& npm i \
+&& npm start 
 ```
-then e. g.
+then
 ```bash
 firefox localhost:3000
 ```
