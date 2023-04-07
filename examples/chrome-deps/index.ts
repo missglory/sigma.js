@@ -90,7 +90,7 @@ function start(dataRaw) {
     // State derived from query:
     selectedNeighbor?: string;
     selected: Selection[];
-    shortestPath: Map<string, number>;
+    paths: Map<string, number>[];
 
     // State derived from hovered node:
     hoveredNeighbors?: Set<string>;
@@ -104,7 +104,7 @@ function start(dataRaw) {
       { selected: undefined, suggest: undefined },
       { selected: undefined, suggest: undefined },
     ],
-    shortestPath: new Map<string, number>(),
+    paths: []
   };
 
   Object.keys(dataRaw).forEach((rootNode) => {
@@ -341,15 +341,16 @@ function start(dataRaw) {
     .join("\n");
 
   async function assignPath(node1, node2) {
-    const paths = allSimplePaths(graph, node1, node2, { maxDepth: 7 });
+    state.paths = allSimplePaths(graph, node1, node2, { maxDepth: 7 })
+      .map((path) => new Map(path.map((p, i, ar) => [p, i / ar.length])));
     const pathsElem = document.getElementById("pathList");
     pathsElem.replaceChildren();
-    if (paths.length) {
-      state.shortestPath = new Map(paths[0].map((node, index) => [node, index / paths[0].length]));
-      paths[0].forEach((path, index) => {
+    // const pathLeftButt = document.getElementById("pathLeftButton") as HTMLButtonElement;
+    if (state.paths.length) {
+      state.paths[0].forEach((percent, path) => {
         const el = document.createElement("tt");
         el.innerHTML = path; 
-        el.style.borderColor = getHeatMapColor(index / paths[0].length);
+        el.style.borderColor = getHeatMapColor(percent);
         el.style.borderStyle = "solid";
         el.style.padding = "3px";
         const divWrap = document.createElement("div");
@@ -359,12 +360,10 @@ function start(dataRaw) {
       })
       return;
     }
-    
-    state.shortestPath = new Map();
   }
 
   function setSearchQuery(query: string, selection: number) {
-    state.shortestPath = new Map();
+    state.paths = []; 
     if (!query) {
       state.selected[selection] = { selected: undefined, suggest: undefined };
       renderer.refresh();
@@ -443,12 +442,13 @@ function start(dataRaw) {
   });
 
   const nodeReducerSelector = (node1, node2) => {
-    return (
-      state.shortestPath.has(node1) ||
-      (state.shortestPath.size === 0 &&
+    return (state.paths.length > 0 && 
+      state.paths[0].has(node1) ||
+      // (state.paths.length === 0 &&
         ((state.inNeighbors && graph.areInNeighbors(node1, node2)) ||
           (state.outNeighbors && graph.areOutNeighbors(node1, node2))))
-    );
+    // )
+    ;
   };
 
   const scaryFunction = (node) => {
@@ -482,8 +482,8 @@ function start(dataRaw) {
       res.color = "#877";
     }
     if (state.selected[0].selected === node || nodeReducerSelector(node, state.selected[0].selected)) {
-      if (state.shortestPath.has(node)) {
-        const v = state.shortestPath.get(node);
+      if (state.paths.length && state.paths[0].has(node)) {
+        const v = state.paths[0].get(node);
         res.color = getHeatMapColor(v);
       }
       res.highlighted = true;

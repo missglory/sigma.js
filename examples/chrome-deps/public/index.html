@@ -55,10 +55,12 @@
 		<div id="interface">
 			<fieldset>
 				<input type="search" id="search-input0" list="suggestions0" placeholder="Try searching for a node..." />
+				<tt id="searchTT0">1</tt>
 				<br/>
 				<button id="reroute"><b>▼▲</b></button>
 				<br/>
 				<input type="search" id="search-input1" list="suggestions1" placeholder="Try searching for a node..." />
+				<tt id="searchTT1">1</tt>
 			</fieldset>
 			<!-- <datalist id="suggestions0"></datalist> -->
 			<!-- <datalist id="suggestions1"></datalist> -->
@@ -94,6 +96,10 @@
 			</fieldset>
 			<fieldset>
 				<h4>Shortest path</h4>
+				<button id="pathRightButton">▶</button>
+				<input type="number" max="9" min="0" maxlength="1" id="pathIndex" value="1"></input>input ></input>
+				<button id="pathLeftButton">◀</button>
+				<br/>
 				<div id="pathList"></div>
 			</fieldset>
 		</div>
