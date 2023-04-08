@@ -150,7 +150,7 @@ function start(dataRaw) {
       try {
         if (hierarchy.length > 0) {
           graph.addDirectedEdge(l, hierarchy.at(-1).name, {
-            color: "#666",
+            color: "#aaa",
           });
         }
       } catch (err) {}
@@ -262,8 +262,6 @@ function start(dataRaw) {
   });
 
   layout.start();
-
-  // Create the sigma
   const renderer = new Sigma(graph, container, {
     defaultEdgeType: g_state.edgesRenderer,
     edgeProgramClasses: {
@@ -272,12 +270,6 @@ function start(dataRaw) {
     },
   });
 
-  //
-  // Drag'n'drop feature
-  // ~~~~~~~~~~~~~~~~~~~
-  //
-
-  // State for drag'n'drop
   let draggedNode: string | null = null;
   let isDragging = false;
 
@@ -343,23 +335,41 @@ function start(dataRaw) {
   async function assignPath(node1, node2) {
     state.paths = allSimplePaths(graph, node1, node2, { maxDepth: 7 })
       .map((path) => new Map(path.map((p, i, ar) => [p, i / ar.length])));
-    const pathsElem = document.getElementById("pathList");
-    pathsElem.replaceChildren();
-    // const pathLeftButt = document.getElementById("pathLeftButton") as HTMLButtonElement;
-    if (state.paths.length) {
-      state.paths[0].forEach((percent, path) => {
-        const el = document.createElement("tt");
-        el.innerHTML = path; 
-        el.style.borderColor = getHeatMapColor(percent);
-        el.style.borderStyle = "solid";
-        el.style.padding = "3px";
-        const divWrap = document.createElement("div");
-        divWrap.style.marginBottom = "8px";
-        divWrap.appendChild(el);
-        pathsElem.appendChild(divWrap);
-      })
-      return;
-    }
+    state.paths.sort((path1, path2) => path1.size < path2.size ? -1 : (path1.size === path2.size ? 0 : 1));
+    document.getElementById("pathsLabel").innerHTML = state.paths.length.toString() + " paths";
+    const pathsList = document.getElementById("pathList");
+    const pathIndex = document.getElementById("pathIndex") as HTMLInputElement;
+    const pathLeftButton = document.getElementById("pathLeftButton") as HTMLButtonElement;
+    pathLeftButton.onclick = (e) => {
+      const v = Math.max(0, parseInt(pathIndex.value) - 1);
+      pathIndex.value = v.toString();
+      pathIndex.dispatchEvent(new Event("input")); 
+    };
+    const pathRightButton = document.getElementById("pathRightButton") as HTMLButtonElement;
+    pathRightButton.onclick = (e) => {
+      const v = Math.min(state.paths.length, parseInt(pathIndex.value) + 1);
+      pathIndex.value = v.toString();
+      pathIndex.dispatchEvent(new Event("input")); 
+    };
+
+    pathIndex.addEventListener("input", (ev) => {
+      pathsList.replaceChildren();
+      const idx = parseInt((ev.target as HTMLInputElement).value) - 1;
+      if (state.paths.length > idx) {
+        state.paths[idx].forEach((percent, path) => {
+          const el = document.createElement("tt");
+          el.innerHTML = path; 
+          el.style.borderColor = getHeatMapColor(percent);
+          el.style.borderStyle = "solid";
+          el.style.padding = "3px";
+          const divWrap = document.createElement("div");
+          divWrap.style.marginBottom = "8px";
+          divWrap.appendChild(el);
+          pathsList.appendChild(divWrap);
+        })
+      }
+    });
+    pathIndex.dispatchEvent(new InputEvent("input"));
   }
 
   function setSearchQuery(query: string, selection: number) {
@@ -424,13 +434,14 @@ function start(dataRaw) {
   searchInputs.forEach((searchInput, index) => {
     searchInput.addEventListener("input", (e) => {
       setSearchQuery(searchInput.value || "", index);
-      if (state.selected[index].selected !== undefined) {
-        (e.target as HTMLInputElement).style.color = "rgb(128,255,220)";
-        (e.target as HTMLInputElement).style.borderColor = "rgb(128,255,220)";
-      } else {
-        (e.target as HTMLInputElement).style.color = "white";
-        (e.target as HTMLInputElement).style.borderColor = "white";
-      }
+      // const tts = ["0", "1"].map((idx) => document.getElementById("searchTT" + idx));
+      const tt = document.getElementById("searchTT" + index.toString());
+      const clrStr = state.selected[index].selected !== undefined ? "rgb(128,255,220)" : "#fff";
+      (e.target as HTMLInputElement).style.color = clrStr;
+      (e.target as HTMLInputElement).style.borderColor = clrStr;
+      tt.style.color = clrStr;
+      tt.innerHTML = (state.selected[index].suggest !== undefined ? state.selected[index].suggest.size 
+      : state.selected[index].selected !== undefined ? 1 : 0).toString();
     });
   });
 

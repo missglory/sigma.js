@@ -40,15 +40,21 @@
 			left: 10px;
 			height: fit-content;
 		}
-	*{
-		color: white;
-		border-radius: 10px;
-		background: rgba(0, 0, 0, 0);
-		border-color: white;
-	}
-	button {
-		border-color: white;
-	}
+
+		* {
+			color: white;
+			border-radius: 10px;
+			background: rgba(0, 0, 0, 0);
+			border-color: white;
+		}
+
+		button {
+			border-color: white;
+		}
+
+		#pathIndex{
+			text-align: center;
+		}
 	</style>
 	<main>
 		<div id="sigma-container"></div>
@@ -56,9 +62,9 @@
 			<fieldset>
 				<input type="search" id="search-input0" list="suggestions0" placeholder="Try searching for a node..." />
 				<tt id="searchTT0">1</tt>
-				<br/>
+				<br />
 				<button id="reroute"><b>▼▲</b></button>
-				<br/>
+				<br />
 				<input type="search" id="search-input1" list="suggestions1" placeholder="Try searching for a node..." />
 				<tt id="searchTT1">1</tt>
 			</fieldset>
@@ -69,16 +75,16 @@
 				<button type="submit" id="resetBtn">Reset graph</button>
 				<button type="button" id="fa2">Stop layout ⏸</button>
 			</fieldset>
-			
+
 			<fieldset>
 				<input type="number" max="9" min="0" maxlength="1" id="layerNum" value="1"></input>
 				<button type="button" id="addLayer">Add layer</button>
-				<br/>
+				<br />
 				<input type="checkbox" id="inn" checked>
 				<b></b>In neighbors</b>
-				<br/>
+				<br />
 				<input type="checkbox" id="outn">Out neighbors</input>
-				<br/>
+				<br />
 				<ul id="layerList">
 				</ul>
 			</fieldset>
@@ -95,11 +101,12 @@
 				</div>
 			</fieldset>
 			<fieldset>
-				<h4>Shortest path</h4>
-				<button id="pathRightButton">▶</button>
-				<input type="number" max="9" min="0" maxlength="1" id="pathIndex" value="1"></input>input ></input>
+				<b id="pathsLabel">0 paths</b>
 				<button id="pathLeftButton">◀</button>
-				<br/>
+				<input type="number" max="6" min="1" maxlength="1" id="pathIndex" value="1"></input></input>
+				<button id="pathRightButton">▶</button>
+				<br />
+				<br />
 				<div id="pathList"></div>
 			</fieldset>
 		</div>
