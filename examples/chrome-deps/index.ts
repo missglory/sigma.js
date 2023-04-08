@@ -5,7 +5,6 @@ import { singleSource } from "graphology-shortest-path/unweighted";
 import Sigma from "sigma";
 import { Coordinates, EdgeDisplayData, NodeDisplayData } from "sigma/types";
 import chroma from "chroma-js";
-import $ from "jquery";
 import EdgesDefaultProgram from "sigma/rendering/webgl/programs/edge";
 import EdgesFastProgram from "sigma/rendering/webgl/programs/edge.fast";
 
@@ -28,6 +27,8 @@ const g_state = {
 // let DELIMETER = ":";
 
 const layers = new Set([0]);
+
+const downscaleConst = 1;
 
 const getHeatMapColor = (v: number) => {
   v = Math.min(v, 1.1);
@@ -54,7 +55,7 @@ const getHeatMapColor = (v: number) => {
 window.addEventListener("keydown", function (e) {
   if (e.keyCode == 32) {
     e.preventDefault();
-    $("#fa2").click();
+    document.getElementById("fa2").dispatchEvent(new Event("click"));
   }
 });
 window.scrollTo({
@@ -138,8 +139,8 @@ function start(dataRaw) {
       try {
         const c = chroma.random()._rgb;
         graph.addNode(l, {
-          x: c[0],
-          y: c[1],
+          x: c[0] * downscaleConst,
+          y: c[1] * downscaleConst,
           size: Math.pow(30 / (lvl + 2), 0.5),
           // size: 4,
           color: chroma.random().hex(),
@@ -195,13 +196,13 @@ function start(dataRaw) {
   }
   fa2Button.addEventListener("click", toggleFA2Layout);
 
-  $("#resetBtn").click(() => {
+  document.getElementById("resetBtn").onclick = (e) => {
     graph.forEachNode((node) => {
       const c = chroma.random()._rgb;
-      graph.setNodeAttribute(node, "x", c[0]);
-      graph.setNodeAttribute(node, "y", c[1]);
+      graph.setNodeAttribute(node, "x", c[0] * downscaleConst);
+      graph.setNodeAttribute(node, "y", c[1] * downscaleConst);
     });
-  });
+  };
 
   document.getElementById("reroute").onclick = (ev) => {
     const vals = searchInputs.map((input) => input.value);
@@ -213,6 +214,8 @@ function start(dataRaw) {
 
   document.getElementById("inn").onclick = (ev) => {
     state.inNeighbors = (ev.target as HTMLInputElement).checked;
+    // const ttInn = document.getElementById("ttInn");
+    // ttIn.innerHTML = graph.neighbors()
     renderer.refresh();
   };
 
@@ -411,6 +414,16 @@ function start(dataRaw) {
         assignPath(selectedOther, state.selected[selection].selected);
       }
 
+      if (selection === 0) {
+        const ttInn = document.getElementById("ttInn");
+        const ttOutn = document.getElementById("ttOutn");
+        const selectedNeighbors = graph.neighbors(state.selected[selection].selected);
+        // console.log(selectedNeighbors);
+        ttInn.innerHTML = selectedNeighbors.reduce((prev, x, i) => {
+          return prev + x + "<br/>";
+        }, "");
+        // console.log(ttInn.innerHTML);
+      }
       const nodePosition = renderer.getNodeDisplayData(state.selected[selection].selected) as Coordinates;
       renderer.getCamera().animate(nodePosition, {
         duration: 500,
