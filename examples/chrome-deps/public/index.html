@@ -55,18 +55,22 @@
 		#pathIndex{
 			text-align: center;
 		}
+	 
+		#ttInn #ttOutn {
+			width: 500px;
+		}
 	</style>
 	<main>
 		<div id="sigma-container"></div>
 		<div id="interface">
 			<fieldset>
 				<input type="search" id="search-input0" list="suggestions0" placeholder="Try searching for a node..." />
-				<tt id="searchTT0">1</tt>
+				<tt id="searchTT0">0</tt>
 				<br />
 				<button id="reroute"><b>▼▲</b></button>
 				<br />
 				<input type="search" id="search-input1" list="suggestions1" placeholder="Try searching for a node..." />
-				<tt id="searchTT1">1</tt>
+				<tt id="searchTT1">0</tt>
 			</fieldset>
 			<!-- <datalist id="suggestions0"></datalist> -->
 			<!-- <datalist id="suggestions1"></datalist> -->
@@ -83,8 +87,10 @@
 				<input type="checkbox" id="inn" checked>
 				<b></b>In neighbors</b>
 				<br />
+				<tt id="ttInn"></tt>
 				<input type="checkbox" id="outn">Out neighbors</input>
 				<br />
+				<tt id="ttOutn"></tt>
 				<ul id="layerList">
 				</ul>
 			</fieldset>

@@ -4,7 +4,8 @@
   "description": "Sigma example : Node drag'n'drop, with mouse graph creation",
   "main": "index.js",
   "scripts": {
-    "start": "kotatsu serve --typescript index.ts --public / ./public -p 9000"
+    "start": "kotatsu serve --typescript index.ts --public / ./public -p 9000",
+    "ru": "rollup -c -w"
   },
   "license": "MIT",
   "dependencies": {

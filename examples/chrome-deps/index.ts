@@ -42,7 +42,7 @@ const getHeatMapColor = (v: number) => {
     ["0.77777", "rgb(116,173,209)"],
     ["0.88888", "rgb(69,117,180)"],
     ["1.00000", "rgb(49,54,149)"],
-    ["1.10000", "rgb(29,10,100)"]
+    ["1.10000", "rgb(29,10,100)"],
   ];
   let i = 0;
   while (parseFloat(colorScale[i][0]) < v) {
@@ -87,12 +87,11 @@ function start(dataRaw) {
     inNeighbors: boolean;
     outNeighbors: boolean;
 
-    // State derived from query:
     selectedNeighbor?: string;
     selected: Selection[];
     paths: Map<string, number>[];
+    pathIndex: number;
 
-    // State derived from hovered node:
     hoveredNeighbors?: Set<string>;
   }
   const state: State = {
@@ -104,7 +103,8 @@ function start(dataRaw) {
       { selected: undefined, suggest: undefined },
       { selected: undefined, suggest: undefined },
     ],
-    paths: []
+    paths: [],
+    pathIndex: 0,
   };
 
   Object.keys(dataRaw).forEach((rootNode) => {
@@ -333,9 +333,10 @@ function start(dataRaw) {
     .join("\n");
 
   async function assignPath(node1, node2) {
-    state.paths = allSimplePaths(graph, node1, node2, { maxDepth: 7 })
-      .map((path) => new Map(path.map((p, i, ar) => [p, i / ar.length])));
-    state.paths.sort((path1, path2) => path1.size < path2.size ? -1 : (path1.size === path2.size ? 0 : 1));
+    state.paths = allSimplePaths(graph, node1, node2, { maxDepth: 7 }).map(
+      (path) => new Map(path.map((p, i, ar) => [p, i / ar.length])),
+    );
+    state.paths.sort((path1, path2) => (path1.size < path2.size ? -1 : path1.size === path2.size ? 0 : 1));
     document.getElementById("pathsLabel").innerHTML = state.paths.length.toString() + " paths";
     const pathsList = document.getElementById("pathList");
     const pathIndex = document.getElementById("pathIndex") as HTMLInputElement;
@@ -343,22 +344,22 @@ function start(dataRaw) {
     pathLeftButton.onclick = (e) => {
       const v = Math.max(0, parseInt(pathIndex.value) - 1);
       pathIndex.value = v.toString();
-      pathIndex.dispatchEvent(new Event("input")); 
+      pathIndex.dispatchEvent(new Event("input"));
     };
     const pathRightButton = document.getElementById("pathRightButton") as HTMLButtonElement;
     pathRightButton.onclick = (e) => {
       const v = Math.min(state.paths.length, parseInt(pathIndex.value) + 1);
       pathIndex.value = v.toString();
-      pathIndex.dispatchEvent(new Event("input")); 
+      pathIndex.dispatchEvent(new Event("input"));
     };
 
-    pathIndex.addEventListener("input", (ev) => {
+    pathIndex.oninput =(ev) => {
       pathsList.replaceChildren();
       const idx = parseInt((ev.target as HTMLInputElement).value) - 1;
       if (state.paths.length > idx) {
         state.paths[idx].forEach((percent, path) => {
           const el = document.createElement("tt");
-          el.innerHTML = path; 
+          el.innerHTML = path;
           el.style.borderColor = getHeatMapColor(percent);
           el.style.borderStyle = "solid";
           el.style.padding = "3px";
@@ -366,14 +367,16 @@ function start(dataRaw) {
           divWrap.style.marginBottom = "8px";
           divWrap.appendChild(el);
           pathsList.appendChild(divWrap);
-        })
+        });
+        state.pathIndex = idx;
       }
-    });
+      renderer.refresh();
+    };
     pathIndex.dispatchEvent(new InputEvent("input"));
   }
 
   function setSearchQuery(query: string, selection: number) {
-    state.paths = []; 
+    state.paths = [];
     if (!query) {
       state.selected[selection] = { selected: undefined, suggest: undefined };
       renderer.refresh();
@@ -440,8 +443,13 @@ function start(dataRaw) {
       (e.target as HTMLInputElement).style.color = clrStr;
       (e.target as HTMLInputElement).style.borderColor = clrStr;
       tt.style.color = clrStr;
-      tt.innerHTML = (state.selected[index].suggest !== undefined ? state.selected[index].suggest.size 
-      : state.selected[index].selected !== undefined ? 1 : 0).toString();
+      tt.innerHTML = (
+        state.selected[index].suggest !== undefined
+          ? state.selected[index].suggest.size
+          : state.selected[index].selected !== undefined
+          ? 1
+          : 0
+      ).toString();
     });
   });
 
@@ -451,16 +459,6 @@ function start(dataRaw) {
   renderer.on("leaveNode", () => {
     setHoveredNode(undefined);
   });
-
-  const nodeReducerSelector = (node1, node2) => {
-    return (state.paths.length > 0 && 
-      state.paths[0].has(node1) ||
-      // (state.paths.length === 0 &&
-        ((state.inNeighbors && graph.areInNeighbors(node1, node2)) ||
-          (state.outNeighbors && graph.areOutNeighbors(node1, node2))))
-    // )
-    ;
-  };
 
   const scaryFunction = (node) => {
     const boundarySet = new Set([node]);
@@ -492,11 +490,19 @@ function start(dataRaw) {
       res.label = "";
       res.color = "#877";
     }
-    if (state.selected[0].selected === node || nodeReducerSelector(node, state.selected[0].selected)) {
-      if (state.paths.length && state.paths[0].has(node)) {
-        const v = state.paths[0].get(node);
-        res.color = getHeatMapColor(v);
-      }
+
+    if (state.paths.length > state.pathIndex && state.paths[state.pathIndex].has(node)) {
+      res.highlighted = true;
+      res.color = getHeatMapColor(state.paths[state.pathIndex].get(node));
+      return res;
+    }
+
+    const nodeOut = state.selected[0].selected;
+    if (
+      nodeOut === node ||
+      (state.inNeighbors && graph.areInNeighbors(node, nodeOut)) ||
+      (state.outNeighbors && graph.areOutNeighbors(node, nodeOut))
+    ) {
       res.highlighted = true;
       return res;
     }
@@ -511,16 +517,25 @@ function start(dataRaw) {
   renderer.setSetting("edgeReducer", (edge, data) => {
     const res: Partial<EdgeDisplayData> = { ...data };
 
-    if (state.hoveredNode && !graph.hasExtremity(edge, state.hoveredNode)) {
-      res.hidden = true;
+    const currPath = state.paths.length > state.pathIndex ? state.paths[state.pathIndex] : null;
+    if (currPath && currPath.has(graph.source(edge)) && currPath.has(graph.target(edge))) {
+      res.color = getHeatMapColor(currPath.get(graph.source(edge)));
+      res.zIndex = 10;
+      return res;
     }
 
     if (
-      state.selected[0].suggest &&
-      (!state.selected[0].suggest.has(graph.source(edge)) || !state.selected[0].suggest.has(graph.target(edge)))
+      (state.hoveredNode && !graph.hasExtremity(edge, state.hoveredNode)) ||
+      (state.selected[0].suggest &&
+        (!state.selected[0].suggest.has(graph.source(edge)) || !state.selected[0].suggest.has(graph.target(edge))))
     ) {
       res.hidden = true;
+      return res;
     }
+
+    // if (currPath) {
+    //   res.color = "#8a8a8a";
+    // }
 
     return res;
   });
