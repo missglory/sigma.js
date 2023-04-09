@@ -12,9 +12,37 @@ import FA2Layout from "graphology-layout-forceatlas2/worker";
 import forceAtlas2 from "graphology-layout-forceatlas2";
 import { editor } from "monaco-editor";
 
+const diffEditor = editor.create(document.getElementById("diffContainer"), {
+  language: "json",
+  automaticLayout: true,
+  // renderValidationDecorations: "on"
+  fontSize: 11,
+});
+diffEditor.getModel().updateOptions({
+  tabSize: 2,
+  // siz
+});
+
 Promise.all([fetch("./chrome_deps.json")])
-  .then((rs) => Promise.all(rs.map((r) => r.json())))
-  .then(Function.prototype.apply.bind(start, start));
+  .then((rs) =>
+    Promise.all(
+      rs.map((r) => {
+        // console.log(r);
+        // diffEditor.setValue(JSON.stringify(r));
+        // diffEditor.setValue(r.json());
+        return r.json();
+      }),
+    ),
+  )
+  .then(
+    // .then((v) => {
+    // console.log(JSON.parse(v[0]));
+    // console.log(JSON.stringify(v[0]));
+    // diffEditor.setValue(JSON.parse(v[0]));
+    // }
+    Function.prototype.apply.bind(start, start),
+    // Function.prototype.apply.bind(diffEditor.setValue, diffEditor.setValue)
+  );
 
 const searchInputs = [0, 1].map((v) => {
   return document.getElementById("search-input" + v.toString()) as HTMLInputElement;
@@ -42,17 +70,6 @@ const downscaleConst = 1;
 // 	language: "cpp",
 // 	automaticLayout: true,
 // });
-
-const diffEditor = editor.create(document.getElementById("diffContainer"), {
-  language: "json",
-  automaticLayout: true,
-  // renderValidationDecorations: "on"
-  fontSize: 11,
-});
-diffEditor.getModel().updateOptions({ 
-  tabSize: 2,
-  // siz
- })
 
 const getHeatMapColor = (v: number) => {
   v = Math.min(v, 1.1);
@@ -146,7 +163,7 @@ appendButton.onclick = (e) => {
   try {
     obj = JSON.parse(v);
     start(obj);
-  } catch (e) { 
+  } catch (e) {
     alert("Invalid JSON");
   }
 };
@@ -234,72 +251,138 @@ addLayerButton.addEventListener("click", (e: MouseEvent) => {
   return;
 });
 
+const graph2JSON = async (graph: graphology.DirectedGraph) => {
+  let res = {};
+  graph.nodes().forEach((n) => {
+    let nodeObj = {};
+    nodeObj[n] = { deps: graph.neighbors(n) };
+    Object.assign(res, nodeObj);
+  });
+  return JSON.stringify(res, null, 2);
+};
+
+function appendText(text, model) {
+  const range = model.getFullModelRange();
+  const op = {
+    identifier: { major: 1, minor: 1 },
+    range: range,
+    text: "\n" + text,
+    forceMoveMarkers: true,
+  };
+  model.pushEditOperations([], [op], null);
+}
+
+const line2diff = async (n, graph) => {
+  let nodeObj = {};
+  nodeObj[n] = { deps: graph.neighbors(n) };
+  // Object.assign(res, nodeObj);
+  const model = diffEditor.getModel();
+  // const textToAppend = "This is some new text to append.";
+  const textToAppend = JSON.stringify(nodeObj, null, 2);
+
+  // const range = model.getFullModelRange();
+  // const op = {
+  //   identifier: { major: 1, minor: 1 },
+  //   range: range,
+  //   text: textToAppend,
+  //   forceMoveMarkers: true,
+  // };
+
+  // model.pushEditOperations([], [op], null);
+  appendText(textToAppend, model);
+};
+
+const graph2diff = async (graph: graphology.DirectedGraph) => {
+  graph.nodes().forEach((n) => {
+    // let nodeObj = {};
+    // nodeObj[n] = { deps: graph.neighbors(n) };
+    // Object.assign(res, nodeObj);
+    line2diff(n, graph);
+  });
+};
+
+const graph2diffFull = async (graph: graphology.DirectedGraph) => {
+  const v = await graph2JSON(graph);
+  appendText(v, diffEditor.getModel());
+}
+
+const string2Graph = async (rootNode, i, dataRaw, graph) => {
+  const cRoot = chroma.random()._rgb;
+  try {
+    graph.addNode(rootNode, {
+      x: cRoot[0],
+      y: cRoot[1],
+      size: 20,
+      color: chroma.random().hex(),
+      // label: rootNode.substring(rootNode.lastIndexOf(DELIMETER) + 1),
+      label: rootNode,
+    });
+  } catch (e) {}
+  const lines: string[] = dataRaw[rootNode].deps;
+
+  const hierarchy: {
+    name: string;
+    lvl: number;
+  }[] = [
+    {
+      name: rootNode,
+      lvl: -2,
+    },
+  ];
+  lines.forEach((line) => {
+    const lvl = line.lastIndexOf(" ");
+
+    const l = line.replaceAll(" ", "").replaceAll("...", "");
+    // const l = line;
+    try {
+      const c = chroma.random()._rgb;
+      graph.addNode(l, {
+        x: c[0] * downscaleConst,
+        y: c[1] * downscaleConst,
+        size: Math.pow(30 / (lvl + 2), 0.5),
+        // size: 4,
+        color: chroma.random().hex(),
+      });
+      // graph.setNodeAttribute(l, "label", l.substring(l.lastIndexOf(DELIMETER) + 1));
+      graph.setNodeAttribute(l, "label", l);
+    } catch (err) {}
+    try {
+      if (hierarchy.length > 0) {
+        graph.addDirectedEdge(l, hierarchy.at(-1).name, {
+          color: "#aaa",
+        });
+      }
+    } catch (err) {}
+
+    if (hierarchy.length === 0 || lvl > hierarchy.at(-1).lvl) {
+      hierarchy.push({
+        name: l,
+        lvl: lvl,
+      });
+    }
+
+    while (hierarchy.length > 0 && lvl < hierarchy.at(-1).lvl) {
+      hierarchy.pop();
+    }
+  });
+};
+
+const object2Graph = async (dataRaw, graph: graphology.DirectedGraph) => {
+  Object.keys(dataRaw).forEach((rootNode, i) => {
+    string2Graph(rootNode, i, dataRaw, graph);
+  });
+};
+
 function start(dataRaw) {
   // DELIMETER = Object.keys(dataRaw)[0].search(DELIMETER) > -1 ? DELIMETER : "/";
+  object2Graph(dataRaw, graph);
 
-  console.log(dataRaw);
-
-  Object.keys(dataRaw).forEach((rootNode) => {
-    // console.log(rootNode);
-    const cRoot = chroma.random()._rgb;
-    try {
-      graph.addNode(rootNode, {
-        x: cRoot[0],
-        y: cRoot[1],
-        size: 20,
-        color: chroma.random().hex(),
-        // label: rootNode.substring(rootNode.lastIndexOf(DELIMETER) + 1),
-        label: rootNode,
-      });
-    } catch (e) {}
-    const lines: string[] = dataRaw[rootNode].deps;
-
-    const hierarchy: {
-      name: string;
-      lvl: number;
-    }[] = [
-      {
-        name: rootNode,
-        lvl: -2,
-      },
-    ];
-    lines.forEach((line) => {
-      const lvl = line.lastIndexOf(" ");
-
-      const l = line.replaceAll(" ", "").replaceAll("...", "");
-      // const l = line;
-      try {
-        const c = chroma.random()._rgb;
-        graph.addNode(l, {
-          x: c[0] * downscaleConst,
-          y: c[1] * downscaleConst,
-          size: Math.pow(30 / (lvl + 2), 0.5),
-          // size: 4,
-          color: chroma.random().hex(),
-        });
-        // graph.setNodeAttribute(l, "label", l.substring(l.lastIndexOf(DELIMETER) + 1));
-        graph.setNodeAttribute(l, "label", l);
-      } catch (err) {}
-      try {
-        if (hierarchy.length > 0) {
-          graph.addDirectedEdge(l, hierarchy.at(-1).name, {
-            color: "#aaa",
-          });
-        }
-      } catch (err) {}
-
-      if (hierarchy.length === 0 || lvl > hierarchy.at(-1).lvl) {
-        hierarchy.push({
-          name: l,
-          lvl: lvl,
-        });
-      }
-
-      while (hierarchy.length > 0 && lvl < hierarchy.at(-1).lvl) {
-        hierarchy.pop();
-      }
-    });
-  });
+  // diffEditor.setValue(graph2JSON(graph));
+  // graph2JSON(graph).then(diffEditor.setValue);
+  // graph2JSON(graph).then(console.log);
+  // graph2diff(graph);
+  // diffEditor.setValue("test")
+  graph2diffFull(graph);
 
   const sensibleSettings = forceAtlas2.inferSettings(graph);
   layout = new FA2Layout(graph, {
@@ -333,7 +416,12 @@ function start(dataRaw) {
     searchInputs[index].dispatchEvent(new Event("input"));
   };
   renderer.on("clickNode", (e) => {
-    clickFunc(e, 0);
+    // if (searchInputs)
+    searchInputs.forEach((input, i) => {
+      if (document.activeElement === input) {
+        clickFunc(e, i);
+      }
+    });
   });
   renderer.on("rightClickNode", (e) => {
     clickFunc(e, 1);
