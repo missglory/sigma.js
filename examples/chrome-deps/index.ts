@@ -12,9 +12,9 @@ import FA2Layout from "graphology-layout-forceatlas2/worker";
 import forceAtlas2 from "graphology-layout-forceatlas2";
 import { editor } from "monaco-editor";
 
-// Promise.all([fetch("./chrome_deps.json")])
-//   .then((rs) => Promise.all(rs.map((r) => r.json())))
-//   .then(Function.prototype.apply.bind(start, start));
+Promise.all([fetch("./chrome_deps.json")])
+  .then((rs) => Promise.all(rs.map((r) => r.json())))
+  .then(Function.prototype.apply.bind(start, start));
 
 const searchInputs = [0, 1].map((v) => {
   return document.getElementById("search-input" + v.toString()) as HTMLInputElement;
@@ -47,7 +47,12 @@ const diffEditor = editor.create(document.getElementById("diffContainer"), {
   language: "json",
   automaticLayout: true,
   // renderValidationDecorations: "on"
+  fontSize: 11,
 });
+diffEditor.getModel().updateOptions({ 
+  tabSize: 2,
+  // siz
+ })
 
 const getHeatMapColor = (v: number) => {
   v = Math.min(v, 1.1);
