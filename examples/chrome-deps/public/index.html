@@ -15,6 +15,7 @@
 			font-family: sans-serif;
 			background: #888;
 			font-size: 13;
+			overflow: hidden;
 		}
 
 		main {
@@ -22,9 +23,15 @@
 			max-width: 1920px;
 		}
 
-		#sigma-container {
-			height: 1080px;
+		body #sigma-container {
+			width: 100%;
+			height: 100%;
 			display: flex;
+			position: absolute;
+			top: 0%;
+			left: 0%;
+			right: 100%;
+			bottom: 100%;
 		}
 
 		#stopBtn {
@@ -56,14 +63,26 @@
 			text-align: center;
 		}
 	 
-		#ttInn #ttOutn {
+		/* #ttInn #ttOutn {
 			width: 500px;
 			max-width: 500px;
+		}
+
+		#inContainer #outContainer {
+			height: 200px;
+		}		 */
+		#diffContainer {
+			height: 250px;
 		}
 	</style>
 	<main>
 		<div id="sigma-container"></div>
 		<div id="interface">
+			<fieldset>
+				<div id="diffContainer"></div>
+				<button id="appendButton">Append</button>
+				<button id="subtractButton">Subtract</button>
+			</fieldset>
 			<fieldset>
 				<input type="search" id="search-input0" list="suggestions0" placeholder="Try searching for a node..." />
 				<tt id="searchTT0">0</tt>
@@ -88,10 +107,12 @@
 				<input type="checkbox" id="inn" checked>
 				<b></b>In neighbors</b>
 				<br />
-				<tt id="ttInn"></tt>
+				<!-- <tt id="ttInn"></tt> -->
+				<!-- <div id="inContainer"></div> -->
 				<input type="checkbox" id="outn">Out neighbors</input>
 				<br />
-				<tt id="ttOutn"></tt>
+				<!-- <tt id="ttOutn"></tt> -->
+				<!-- <div id="outContainer" hidden></div> -->
 				<ul id="layerList">
 				</ul>
 			</fieldset>

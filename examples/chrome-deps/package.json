@@ -15,7 +15,11 @@
     "graphology-shortest-path": "^2.0.2",
     "graphology-simple-path": "^0.2.0",
     "jquery": "^3.6.3",
+    "monaco-editor": "^0.37.1",
+    "rollup-plugin-serve": "^2.0.2",
+    "rollup-plugin-svelte": "^7.1.4",
     "sigma": "latest",
+    "svelte-preprocess": "^5.0.3",
     "uuid": "^8.3.2"
   },
   "devDependencies": {

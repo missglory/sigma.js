@@ -10,6 +10,7 @@ import EdgesFastProgram from "sigma/rendering/webgl/programs/edge.fast";
 
 import FA2Layout from "graphology-layout-forceatlas2/worker";
 import forceAtlas2 from "graphology-layout-forceatlas2";
+import { editor } from "monaco-editor";
 
 Promise.all([fetch("./chrome_deps.json")])
   .then((rs) => Promise.all(rs.map((r) => r.json())))
@@ -29,6 +30,23 @@ const g_state = {
 const layers = new Set([0]);
 
 const downscaleConst = 1;
+
+// const inEdtitor = editor.create(document.getElementById("inContainer"), {
+// 	// value,
+// 	language: "cpp",
+// 	automaticLayout: true,
+// });
+
+// const outEdtitor = editor.create(document.getElementById("outContainer"), {
+// 	// value,
+// 	language: "cpp",
+// 	automaticLayout: true,
+// });
+
+const diffEditor = editor.create(document.getElementById("diffContainer"), {
+  language: "json",
+  automaticLayout: true,
+});
 
 const getHeatMapColor = (v: number) => {
   v = Math.min(v, 1.1);
@@ -76,37 +94,132 @@ type Selection = {
   // query: string
 };
 
+const container = document.getElementById("sigma-container") as HTMLElement;
+const graph = new graphology.DirectedGraph({});
+let renderer: Sigma;
+
+interface State {
+  hoveredNode?: string;
+  searchQuery: string[];
+  sq2: string;
+  inNeighbors: boolean;
+  outNeighbors: boolean;
+
+  selectedNeighbor?: string;
+  selected: Selection[];
+  paths: Map<string, number>[];
+  pathIndex: number;
+
+  hoveredNeighbors?: Set<string>;
+}
+const state: State = {
+  searchQuery: ["", ""],
+  sq2: "",
+  inNeighbors: true,
+  outNeighbors: false,
+  selected: [
+    { selected: undefined, suggest: undefined },
+    { selected: undefined, suggest: undefined },
+  ],
+  paths: [],
+  pathIndex: 0,
+};
+
+let layout: FA2Layout;
+
+const fa2Button = document.getElementById("fa2") as HTMLButtonElement;
+function toggleFA2Layout() {
+  if (layout.isRunning()) {
+    layout.stop();
+    fa2Button.innerHTML = `Start layout ▶`;
+  } else {
+    layout.start();
+    fa2Button.innerHTML = `Stop layout ⏸`;
+    // setTimeout(fa2Button.click, 2000);
+  }
+}
+fa2Button.addEventListener("click", toggleFA2Layout);
+
+document.getElementById("resetBtn").onclick = (e) => {
+  graph.forEachNode((node) => {
+    const c = chroma.random()._rgb;
+    graph.setNodeAttribute(node, "x", c[0] * downscaleConst);
+    graph.setNodeAttribute(node, "y", c[1] * downscaleConst);
+  });
+};
+
+document.getElementById("reroute").onclick = (ev) => {
+  const vals = searchInputs.map((input) => input.value);
+  searchInputs.forEach((input, index) => {
+    input.value = vals[(index + 1) % vals.length];
+    input.dispatchEvent(new Event("input"));
+  });
+};
+
+document.getElementById("inn").onclick = (ev) => {
+  const val = (ev.target as HTMLInputElement).checked;
+  state.inNeighbors = val;
+  document.getElementById("inContainer").hidden = !val;
+  // const ttInn = document.getElementById("ttInn");
+  // ttIn.innerHTML = graph.neighbors()
+  renderer.refresh();
+};
+
+document.getElementById("outn").onclick = (ev) => {
+  state.outNeighbors = (ev.target as HTMLInputElement).checked;
+  renderer.refresh();
+};
+
+const addLayerButton = document.getElementById("addLayer");
+addLayerButton.addEventListener("click", (e: MouseEvent) => {
+  const layerNum = document.getElementById("layerNum");
+  if (!(layerNum instanceof HTMLInputElement)) {
+    console.error("input element type error");
+    throw new Error("err");
+  }
+  const lnValue = layerNum.value;
+  const lnNum = Number(lnValue);
+  const liId = "li" + lnValue;
+  if (layers.has(lnNum) || lnNum < 0 || lnNum > 9 || document.getElementById(liId) !== null) {
+    return;
+  }
+  layers.add(lnNum);
+  const ul = document.getElementById("layerList");
+  const li = document.createElement("div");
+  li.id = liId;
+  const checkBox = document.createElement("input");
+  checkBox.setAttribute("type", "checkbox");
+  checkBox.id = "checkBox";
+  //  + toString(Number(layerNum.value))
+  li.appendChild(checkBox);
+  const label = document.createElement("b");
+  label.innerHTML = layerNum.value;
+  li.appendChild(label);
+  const buttonDelete = document.createElement("button");
+  buttonDelete.innerHTML = "⌫";
+  buttonDelete.onclick = (e: MouseEvent) => {
+    if (!(e.target instanceof Node)) {
+      return;
+    }
+    removeParent(e.target as Node);
+    layers.delete(Number((e.target.previousSibling as HTMLElement).innerHTML));
+    return;
+  };
+  li.appendChild(buttonDelete);
+  ul.appendChild(li);
+  return;
+});
+
+  renderer = new Sigma(graph, container, {
+    defaultEdgeType: g_state.edgesRenderer,
+    edgeProgramClasses: {
+      "edges-default": EdgesDefaultProgram,
+      "edges-fast": EdgesFastProgram,
+    },
+  });
+
 function start(dataRaw) {
   // DELIMETER = Object.keys(dataRaw)[0].search(DELIMETER) > -1 ? DELIMETER : "/";
-  const container = document.getElementById("sigma-container") as HTMLElement;
-  const graph = new graphology.DirectedGraph({});
-
-  interface State {
-    hoveredNode?: string;
-    searchQuery: string[];
-    sq2: string;
-    inNeighbors: boolean;
-    outNeighbors: boolean;
-
-    selectedNeighbor?: string;
-    selected: Selection[];
-    paths: Map<string, number>[];
-    pathIndex: number;
-
-    hoveredNeighbors?: Set<string>;
-  }
-  const state: State = {
-    searchQuery: ["", ""],
-    sq2: "",
-    inNeighbors: true,
-    outNeighbors: false,
-    selected: [
-      { selected: undefined, suggest: undefined },
-      { selected: undefined, suggest: undefined },
-    ],
-    paths: [],
-    pathIndex: 0,
-  };
 
   Object.keys(dataRaw).forEach((rootNode) => {
     const cRoot = chroma.random()._rgb;
@@ -169,6 +282,12 @@ function start(dataRaw) {
     });
   });
 
+  const sensibleSettings = forceAtlas2.inferSettings(graph);
+  layout = new FA2Layout(graph, {
+    settings: sensibleSettings,
+  });
+  layout.start();
+
   const graphDists = new Map();
   async function updateDists() {
     graph.forEachNode((node) => {
@@ -178,104 +297,10 @@ function start(dataRaw) {
   }
   // updateDists()
 
-  const sensibleSettings = forceAtlas2.inferSettings(graph);
-  const layout = new FA2Layout(graph, {
-    settings: sensibleSettings,
-  });
-
-  const fa2Button = document.getElementById("fa2") as HTMLButtonElement;
-  function toggleFA2Layout() {
-    if (layout.isRunning()) {
-      layout.stop();
-      fa2Button.innerHTML = `Start layout ▶`;
-    } else {
-      layout.start();
-      fa2Button.innerHTML = `Stop layout ⏸`;
-      // setTimeout(fa2Button.click, 2000);
-    }
-  }
-  fa2Button.addEventListener("click", toggleFA2Layout);
-
-  document.getElementById("resetBtn").onclick = (e) => {
-    graph.forEachNode((node) => {
-      const c = chroma.random()._rgb;
-      graph.setNodeAttribute(node, "x", c[0] * downscaleConst);
-      graph.setNodeAttribute(node, "y", c[1] * downscaleConst);
-    });
-  };
-
-  document.getElementById("reroute").onclick = (ev) => {
-    const vals = searchInputs.map((input) => input.value);
-    searchInputs.forEach((input, index) => {
-      input.value = vals[(index + 1) % vals.length];
-      input.dispatchEvent(new Event("input"));
-    });
-  };
-
-  document.getElementById("inn").onclick = (ev) => {
-    state.inNeighbors = (ev.target as HTMLInputElement).checked;
-    // const ttInn = document.getElementById("ttInn");
-    // ttIn.innerHTML = graph.neighbors()
-    renderer.refresh();
-  };
-
-  document.getElementById("outn").onclick = (ev) => {
-    state.outNeighbors = (ev.target as HTMLInputElement).checked;
-    renderer.refresh();
-  };
-
-  const addLayerButton = document.getElementById("addLayer");
-  addLayerButton.addEventListener("click", (e: MouseEvent) => {
-    const layerNum = document.getElementById("layerNum");
-    if (!(layerNum instanceof HTMLInputElement)) {
-      console.error("input element type error");
-      throw new Error("err");
-    }
-    const lnValue = layerNum.value;
-    const lnNum = Number(lnValue);
-    const liId = "li" + lnValue;
-    if (layers.has(lnNum) || lnNum < 0 || lnNum > 9 || document.getElementById(liId) !== null) {
-      return;
-    }
-    layers.add(lnNum);
-    const ul = document.getElementById("layerList");
-    const li = document.createElement("div");
-    li.id = liId;
-    const checkBox = document.createElement("input");
-    checkBox.setAttribute("type", "checkbox");
-    checkBox.id = "checkBox";
-    //  + toString(Number(layerNum.value))
-    li.appendChild(checkBox);
-    const label = document.createElement("b");
-    label.innerHTML = layerNum.value;
-    li.appendChild(label);
-    const buttonDelete = document.createElement("button");
-    buttonDelete.innerHTML = "⌫";
-    buttonDelete.onclick = (e: MouseEvent) => {
-      if (!(e.target instanceof Node)) {
-        return;
-      }
-      removeParent(e.target as Node);
-      layers.delete(Number((e.target.previousSibling as HTMLElement).innerHTML));
-      return;
-    };
-    li.appendChild(buttonDelete);
-    ul.appendChild(li);
-    return;
-  });
-
-  layout.start();
-  const renderer = new Sigma(graph, container, {
-    defaultEdgeType: g_state.edgesRenderer,
-    edgeProgramClasses: {
-      "edges-default": EdgesDefaultProgram,
-      "edges-fast": EdgesFastProgram,
-    },
-  });
-
   let draggedNode: string | null = null;
   let isDragging = false;
 
+  // renderer = new Sigma
   renderer.on("downNode", (e) => {
     isDragging = true;
     draggedNode = e.node;
@@ -356,7 +381,7 @@ function start(dataRaw) {
       pathIndex.dispatchEvent(new Event("input"));
     };
 
-    pathIndex.oninput =(ev) => {
+    pathIndex.oninput = (ev) => {
       pathsList.replaceChildren();
       const idx = parseInt((ev.target as HTMLInputElement).value) - 1;
       if (state.paths.length > idx) {
@@ -414,16 +439,16 @@ function start(dataRaw) {
         assignPath(selectedOther, state.selected[selection].selected);
       }
 
-      if (selection === 0) {
-        const ttInn = document.getElementById("ttInn");
-        const ttOutn = document.getElementById("ttOutn");
-        const selectedNeighbors = graph.neighbors(state.selected[selection].selected);
-        // console.log(selectedNeighbors);
-        ttInn.innerHTML = selectedNeighbors.reduce((prev, x, i) => {
-          return prev + x + "<br/>";
-        }, "");
-        // console.log(ttInn.innerHTML);
-      }
+      // if (selection === 0) {
+      // const ttInn = document.getElementById("ttInn");
+      // const ttOutn = document.getElementById("ttOutn");
+      // const selectedNeighbors = graph.neighbors(state.selected[selection].selected);
+      // console.log(selectedNeighbors);
+      // ttInn.innerHTML = selectedNeighbors.reduce((prev, x, i) => {
+      //   return prev + x + "<br/>";
+      // }, "");
+      // console.log(ttInn.innerHTML);
+      // }
       const nodePosition = renderer.getNodeDisplayData(state.selected[selection].selected) as Coordinates;
       renderer.getCamera().animate(nodePosition, {
         duration: 500,
