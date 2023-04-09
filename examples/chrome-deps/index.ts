@@ -12,9 +12,9 @@ import FA2Layout from "graphology-layout-forceatlas2/worker";
 import forceAtlas2 from "graphology-layout-forceatlas2";
 import { editor } from "monaco-editor";
 
-Promise.all([fetch("./chrome_deps.json")])
-  .then((rs) => Promise.all(rs.map((r) => r.json())))
-  .then(Function.prototype.apply.bind(start, start));
+// Promise.all([fetch("./chrome_deps.json")])
+//   .then((rs) => Promise.all(rs.map((r) => r.json())))
+//   .then(Function.prototype.apply.bind(start, start));
 
 const searchInputs = [0, 1].map((v) => {
   return document.getElementById("search-input" + v.toString()) as HTMLInputElement;
@@ -46,6 +46,7 @@ const downscaleConst = 1;
 const diffEditor = editor.create(document.getElementById("diffContainer"), {
   language: "json",
   automaticLayout: true,
+  // renderValidationDecorations: "on"
 });
 
 const getHeatMapColor = (v: number) => {
@@ -96,7 +97,13 @@ type Selection = {
 
 const container = document.getElementById("sigma-container") as HTMLElement;
 const graph = new graphology.DirectedGraph({});
-let renderer: Sigma;
+const renderer = new Sigma(graph, container, {
+  defaultEdgeType: g_state.edgesRenderer,
+  edgeProgramClasses: {
+    "edges-default": EdgesDefaultProgram,
+    "edges-fast": EdgesFastProgram,
+  },
+});
 
 interface State {
   hoveredNode?: string;
@@ -126,6 +133,18 @@ const state: State = {
 };
 
 let layout: FA2Layout;
+
+const appendButton = document.getElementById("appendButton") as HTMLButtonElement;
+appendButton.onclick = (e) => {
+  const v = diffEditor.getValue();
+  let obj;
+  try {
+    obj = JSON.parse(v);
+    start(obj);
+  } catch (e) { 
+    alert("Invalid JSON");
+  }
+};
 
 const fa2Button = document.getElementById("fa2") as HTMLButtonElement;
 function toggleFA2Layout() {
@@ -210,18 +229,13 @@ addLayerButton.addEventListener("click", (e: MouseEvent) => {
   return;
 });
 
-  renderer = new Sigma(graph, container, {
-    defaultEdgeType: g_state.edgesRenderer,
-    edgeProgramClasses: {
-      "edges-default": EdgesDefaultProgram,
-      "edges-fast": EdgesFastProgram,
-    },
-  });
-
 function start(dataRaw) {
   // DELIMETER = Object.keys(dataRaw)[0].search(DELIMETER) > -1 ? DELIMETER : "/";
 
+  console.log(dataRaw);
+
   Object.keys(dataRaw).forEach((rootNode) => {
+    // console.log(rootNode);
     const cRoot = chroma.random()._rgb;
     try {
       graph.addNode(rootNode, {
