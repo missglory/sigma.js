@@ -59,10 +59,10 @@
 			border-color: white;
 		}
 
-		#pathIndex{
+		#pathIndex {
 			text-align: center;
 		}
-	 
+
 		/* #ttInn #ttOutn {
 			width: 500px;
 			max-width: 500px;
@@ -74,16 +74,36 @@
 		#diffContainer {
 			height: 250px;
 		}
+
+		.collapseButton {
+			border: 0;
+		}
+
+		fieldset {
+			margin-bottom: 5px;
+			/* border: 0; */
+		}
+		#diffContainer{
+			margin-bottom: 3px;
+		}
+		#reroute {
+			margin: 2px;
+		}
 	</style>
 	<main>
 		<div id="sigma-container"></div>
 		<div id="interface">
 			<fieldset>
+				<button id="collapse0" class="collapseButton">▼</button>
 				<div id="diffContainer"></div>
 				<button id="appendButton">Append</button>
 				<button id="subtractButton">Subtract</button>
+				<button id="revertButton">Revert</button>
+				<button id="wwButton">WW</button>
 			</fieldset>
 			<fieldset>
+				<button id="collapse1" class="collapseButton">▼</button>
+				<br/>
 				<input type="search" id="search-input0" list="suggestions0" placeholder="Try searching for a node..." />
 				<tt id="searchTT0">0</tt>
 				<br />
@@ -92,15 +112,14 @@
 				<input type="search" id="search-input1" list="suggestions1" placeholder="Try searching for a node..." />
 				<tt id="searchTT1">0</tt>
 			</fieldset>
-			<!-- <datalist id="suggestions0"></datalist> -->
-			<!-- <datalist id="suggestions1"></datalist> -->
 			<datalist id="suggestions"></datalist>
 			<fieldset>
+				<button id="collapse2" class="collapseButton">▼</button>
 				<button type="submit" id="resetBtn">Reset graph</button>
 				<button type="button" id="fa2">Stop layout ⏸</button>
 			</fieldset>
-
 			<fieldset>
+				<button id="collapse3" class="collapseButton">▼</button>
 				<input type="number" max="9" min="0" maxlength="1" id="layerNum" value="1"></input>
 				<button type="button" id="addLayer">Add layer</button>
 				<br />
@@ -116,19 +135,8 @@
 				<ul id="layerList">
 				</ul>
 			</fieldset>
-
 			<fieldset>
-				<h4>Edges renderer</h4>
-				<div>
-					<input type="radio" name="edges-renderer" id="edges-default" value="edges-default" />
-					<label for="edges-default">Default</label>
-				</div>
-				<div>
-					<input type="radio" name="edges-renderer" id="edges-fast" value="edges-fast" checked />
-					<label for="edges-fast">Faster (only 1px thick edges)</label>
-				</div>
-			</fieldset>
-			<fieldset>
+				<button id="collapse4" class="collapseButton">▼</button>
 				<b id="pathsLabel">0 paths</b>
 				<button id="pathLeftButton">◀</button>
 				<input type="number" max="6" min="1" maxlength="1" id="pathIndex" value="1"></input></input>

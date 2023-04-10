@@ -16,12 +16,11 @@ const diffEditor = editor.create(document.getElementById("diffContainer"), {
   language: "json",
   automaticLayout: true,
   // renderValidationDecorations: "on"
-  fontSize: 11,
+  fontSize: 10,
+  wordWrap: "on",
+  tabSize: 1
 });
-diffEditor.getModel().updateOptions({
-  tabSize: 2,
-  // siz
-});
+let editorWW = true;
 
 Promise.all([fetch("./chrome_deps.json")])
   .then((rs) =>
@@ -49,27 +48,11 @@ const searchInputs = [0, 1].map((v) => {
 });
 const searchSuggestions = document.getElementById("suggestions") as HTMLDataListElement;
 
-const g_state = {
-  edgesRenderer: document.querySelector<HTMLInputElement>('[name="edges-renderer"]:checked')?.value,
-};
-
 // let DELIMETER = ":";
 
 const layers = new Set([0]);
 
 const downscaleConst = 1;
-
-// const inEdtitor = editor.create(document.getElementById("inContainer"), {
-// 	// value,
-// 	language: "cpp",
-// 	automaticLayout: true,
-// });
-
-// const outEdtitor = editor.create(document.getElementById("outContainer"), {
-// 	// value,
-// 	language: "cpp",
-// 	automaticLayout: true,
-// });
 
 const getHeatMapColor = (v: number) => {
   v = Math.min(v, 1.1);
@@ -120,9 +103,9 @@ type Selection = {
 const container = document.getElementById("sigma-container") as HTMLElement;
 const graph = new graphology.DirectedGraph({});
 const renderer = new Sigma(graph, container, {
-  defaultEdgeType: g_state.edgesRenderer,
+  defaultEdgeType: "edges-fast",
   edgeProgramClasses: {
-    "edges-default": EdgesDefaultProgram,
+    // "edges-default": EdgesDefaultProgram,
     "edges-fast": EdgesFastProgram,
   },
 });
@@ -167,6 +150,15 @@ appendButton.onclick = (e) => {
     alert("Invalid JSON");
   }
 };
+
+document.getElementById("wwButton").onclick = (e) => {
+  // diffEditor.getOption(");
+  editorWW = !editorWW;
+  diffEditor.updateOptions({
+    wordWrap: (editorWW ? "on" : "off")
+  })
+}
+
 
 const fa2Button = document.getElementById("fa2") as HTMLButtonElement;
 function toggleFA2Layout() {
@@ -251,6 +243,26 @@ addLayerButton.addEventListener("click", (e: MouseEvent) => {
   return;
 });
 
+for (const el of document.getElementsByClassName("collapseButton")) {
+  (el as HTMLButtonElement).onclick = (e) => {
+    const button = e.target as HTMLButtonElement;
+    const sw = button.innerHTML === "▸" ? true : false;
+    // if (sw) {
+      // button.parentElement.replaceChildren(button as Node);
+      for (const ch of button.parentElement.children) {
+        if (ch === button) { continue; }
+        (ch as HTMLElement).hidden = !sw; 
+      }
+      // document.querySelectorAll(".colla")
+      button.innerHTML = sw ? "▼" : "▸";
+      button.parentElement.style.border = sw ? "0" : "2px";
+    // } else {
+
+      // button.innerHTML = "▸"
+    // }
+  }
+}
+
 const graph2JSON = async (graph: graphology.DirectedGraph) => {
   let res = {};
   graph.nodes().forEach((n) => {
@@ -258,7 +270,7 @@ const graph2JSON = async (graph: graphology.DirectedGraph) => {
     nodeObj[n] = { deps: graph.neighbors(n) };
     Object.assign(res, nodeObj);
   });
-  return JSON.stringify(res, null, 2);
+  return JSON.stringify(res, null, 1);
 };
 
 function appendText(text, model) {
@@ -677,10 +689,6 @@ function start(dataRaw) {
       res.hidden = true;
       return res;
     }
-
-    // if (currPath) {
-    //   res.color = "#8a8a8a";
-    // }
 
     return res;
   });
