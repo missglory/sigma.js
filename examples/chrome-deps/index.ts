@@ -18,7 +18,7 @@ const diffEditor = editor.create(document.getElementById("diffContainer"), {
   // renderValidationDecorations: "on"
   fontSize: 10,
   wordWrap: "on",
-  tabSize: 1
+  tabSize: 1,
 });
 let editorWW = true;
 
@@ -90,6 +90,15 @@ window.addEventListener("contextmenu", (event) => {
   event.preventDefault();
 });
 
+let ctrl = false;
+window.onkeydown = (e: KeyboardEvent) => {
+  ctrl = e.ctrlKey;
+};
+
+window.onkeyup = (e: KeyboardEvent) => {
+  ctrl = !e.ctrlKey;
+};
+
 const removeParent = (elem: Node) => {
   elem.parentNode.parentNode.removeChild(elem.parentNode);
 };
@@ -123,6 +132,7 @@ interface State {
   pathIndex: number;
 
   hoveredNeighbors?: Set<string>;
+  sizeMult: number;
 }
 const state: State = {
   searchQuery: ["", ""],
@@ -135,6 +145,7 @@ const state: State = {
   ],
   paths: [],
   pathIndex: 0,
+  sizeMult: 1,
 };
 
 let layout: FA2Layout;
@@ -142,12 +153,42 @@ let layout: FA2Layout;
 const appendButton = document.getElementById("appendButton") as HTMLButtonElement;
 appendButton.onclick = (e) => {
   const v = diffEditor.getValue();
-  let obj;
   try {
-    obj = JSON.parse(v);
+    const obj = JSON.parse(v);
     start(obj);
   } catch (e) {
     alert("Invalid JSON");
+  }
+};
+
+const subtractButton = document.getElementById("subtractButton") as HTMLButtonElement;
+subtractButton.onclick = (e) => {
+  const v = diffEditor.getValue();
+  const cur = graph2Object(graph);
+  // let obj;
+  let res = {};
+  try {
+    // const obj = JSON.parse(v);
+    // for (const o in cur) {
+    //   if (!(o in obj)) {
+    //     // res[o] = obj[o];
+    //     const deps = cur[o].deps;
+    //     // console.log(cur[o]);
+    //     // const resDeps = [];
+    //     // for (const dep of deps) {
+    //     //   console.log(dep);
+    //     //   if (!(dep in obj[o].deps)) {
+    //     //     resDeps.push(dep);
+    //     //   }
+    //     // }
+    //     // res[o].deps = resDeps;
+    //     res[o] = { deps: deps };
+    //   }
+    // }
+    // console.log(res);
+    start(JSON.parse(v), false);
+  } catch (e) {
+    alert("JSON error");
   }
 };
 
@@ -155,10 +196,9 @@ document.getElementById("wwButton").onclick = (e) => {
   // diffEditor.getOption(");
   editorWW = !editorWW;
   diffEditor.updateOptions({
-    wordWrap: (editorWW ? "on" : "off")
-  })
-}
-
+    wordWrap: editorWW ? "on" : "off",
+  });
+};
 
 const fa2Button = document.getElementById("fa2") as HTMLButtonElement;
 function toggleFA2Layout() {
@@ -171,7 +211,6 @@ function toggleFA2Layout() {
     // setTimeout(fa2Button.click, 2000);
   }
 }
-fa2Button.addEventListener("click", toggleFA2Layout);
 
 document.getElementById("resetBtn").onclick = (e) => {
   graph.forEachNode((node) => {
@@ -247,30 +286,29 @@ for (const el of document.getElementsByClassName("collapseButton")) {
   (el as HTMLButtonElement).onclick = (e) => {
     const button = e.target as HTMLButtonElement;
     const sw = button.innerHTML === "▸" ? true : false;
-    // if (sw) {
-      // button.parentElement.replaceChildren(button as Node);
-      for (const ch of button.parentElement.children) {
-        if (ch === button) { continue; }
-        (ch as HTMLElement).hidden = !sw; 
+    for (const ch of button.parentElement.children) {
+      if (ch === button) {
+        continue;
       }
-      // document.querySelectorAll(".colla")
-      button.innerHTML = sw ? "▼" : "▸";
-      button.parentElement.style.border = sw ? "0" : "2px";
-    // } else {
-
-      // button.innerHTML = "▸"
-    // }
-  }
+      (ch as HTMLElement).hidden = !sw;
+    }
+    button.innerHTML = sw ? "▼" : "▸";
+    button.parentElement.style.border = sw ? "0" : "2px";
+  };
 }
 
-const graph2JSON = async (graph: graphology.DirectedGraph) => {
+const graph2Object = (graph: graphology.DirectedGraph) => {
   let res = {};
   graph.nodes().forEach((n) => {
     let nodeObj = {};
     nodeObj[n] = { deps: graph.neighbors(n) };
     Object.assign(res, nodeObj);
   });
-  return JSON.stringify(res, null, 1);
+  return res;
+};
+
+const graph2JSON = async (graph: graphology.DirectedGraph) => {
+  return JSON.stringify(graph2Object(graph), null, 1);
 };
 
 function appendText(text, model) {
@@ -316,19 +354,23 @@ const graph2diff = async (graph: graphology.DirectedGraph) => {
 const graph2diffFull = async (graph: graphology.DirectedGraph) => {
   const v = await graph2JSON(graph);
   appendText(v, diffEditor.getModel());
-}
+};
 
-const string2Graph = async (rootNode, i, dataRaw, graph) => {
+const string2Graph = async (rootNode, i, dataRaw, graph, append = true) => {
   const cRoot = chroma.random()._rgb;
   try {
-    graph.addNode(rootNode, {
-      x: cRoot[0],
-      y: cRoot[1],
-      size: 20,
-      color: chroma.random().hex(),
-      // label: rootNode.substring(rootNode.lastIndexOf(DELIMETER) + 1),
-      label: rootNode,
-    });
+    if (append) {
+      graph.addNode(rootNode, {
+        x: cRoot[0],
+        y: cRoot[1],
+        size: 20,
+        color: chroma.random().hex(),
+        // label: rootNode.substring(rootNode.lastIndexOf(DELIMETER) + 1),
+        label: rootNode,
+      });
+    } else {
+      graph.dropNode(rootNode);
+    }
   } catch (e) {}
   const lines: string[] = dataRaw[rootNode].deps;
 
@@ -346,6 +388,11 @@ const string2Graph = async (rootNode, i, dataRaw, graph) => {
 
     const l = line.replaceAll(" ", "").replaceAll("...", "");
     // const l = line;
+
+    if (!append) {
+      return;
+    }
+
     try {
       const c = chroma.random()._rgb;
       graph.addNode(l, {
@@ -358,6 +405,7 @@ const string2Graph = async (rootNode, i, dataRaw, graph) => {
       // graph.setNodeAttribute(l, "label", l.substring(l.lastIndexOf(DELIMETER) + 1));
       graph.setNodeAttribute(l, "label", l);
     } catch (err) {}
+
     try {
       if (hierarchy.length > 0) {
         graph.addDirectedEdge(l, hierarchy.at(-1).name, {
@@ -379,38 +427,13 @@ const string2Graph = async (rootNode, i, dataRaw, graph) => {
   });
 };
 
-const object2Graph = async (dataRaw, graph: graphology.DirectedGraph) => {
+const object2Graph = async (dataRaw, graph: graphology.DirectedGraph, append = true) => {
   Object.keys(dataRaw).forEach((rootNode, i) => {
-    string2Graph(rootNode, i, dataRaw, graph);
+    string2Graph(rootNode, i, dataRaw, graph, append);
   });
 };
 
-function start(dataRaw) {
-  // DELIMETER = Object.keys(dataRaw)[0].search(DELIMETER) > -1 ? DELIMETER : "/";
-  object2Graph(dataRaw, graph);
-
-  // diffEditor.setValue(graph2JSON(graph));
-  // graph2JSON(graph).then(diffEditor.setValue);
-  // graph2JSON(graph).then(console.log);
-  // graph2diff(graph);
-  // diffEditor.setValue("test")
-  graph2diffFull(graph);
-
-  const sensibleSettings = forceAtlas2.inferSettings(graph);
-  layout = new FA2Layout(graph, {
-    settings: sensibleSettings,
-  });
-  layout.start();
-
-  const graphDists = new Map();
-  async function updateDists() {
-    graph.forEachNode((node) => {
-      const paths = singleSource(graph, node);
-      graphDists.set(node, paths);
-    });
-  }
-  // updateDists()
-
+const setupRenderer = () => {
   let draggedNode: string | null = null;
   let isDragging = false;
 
@@ -473,6 +496,42 @@ function start(dataRaw) {
     const coordForGraph = renderer.viewportToGraph({ x: event.x, y: event.y });
   });
 
+  function setHoveredNode(node?: string) {
+    if (node) {
+      state.hoveredNode = node;
+      state.hoveredNeighbors = new Set(graph.neighbors(node));
+    } else {
+      state.hoveredNode = undefined;
+      state.hoveredNeighbors = undefined;
+    }
+
+    renderer.refresh();
+  }
+
+  renderer.on("enterNode", ({ node }) => {
+    setHoveredNode(node);
+  });
+  renderer.on("leaveNode", () => {
+    setHoveredNode(undefined);
+  });
+};
+
+setupRenderer();
+
+function start(dataRaw, append = true) {
+  object2Graph(dataRaw, graph, append);
+  graph2diffFull(graph);
+
+  if (append) {
+    layout?.kill();
+    const sensibleSettings = forceAtlas2.inferSettings(graph);
+    layout = new FA2Layout(graph, {
+      settings: sensibleSettings,
+    });
+    layout.start();
+  }
+  fa2Button.onclick = toggleFA2Layout;
+
   // Feed the datalist autocomplete values:
   searchSuggestions.innerHTML = graph
     .nodes()
@@ -480,7 +539,7 @@ function start(dataRaw) {
     .join("\n");
 
   async function assignPath(node1, node2) {
-    state.paths = allSimplePaths(graph, node1, node2, { maxDepth: 7 }).map(
+    state.paths = allSimplePaths(graph, node1, node2, { maxDepth: 5 }).map(
       (path) => new Map(path.map((p, i, ar) => [p, i / ar.length])),
     );
     state.paths.sort((path1, path2) => (path1.size < path2.size ? -1 : path1.size === path2.size ? 0 : 1));
@@ -558,16 +617,6 @@ function start(dataRaw) {
         assignPath(selectedOther, state.selected[selection].selected);
       }
 
-      // if (selection === 0) {
-      // const ttInn = document.getElementById("ttInn");
-      // const ttOutn = document.getElementById("ttOutn");
-      // const selectedNeighbors = graph.neighbors(state.selected[selection].selected);
-      // console.log(selectedNeighbors);
-      // ttInn.innerHTML = selectedNeighbors.reduce((prev, x, i) => {
-      //   return prev + x + "<br/>";
-      // }, "");
-      // console.log(ttInn.innerHTML);
-      // }
       const nodePosition = renderer.getNodeDisplayData(state.selected[selection].selected) as Coordinates;
       renderer.getCamera().animate(nodePosition, {
         duration: 500,
@@ -579,22 +628,9 @@ function start(dataRaw) {
     renderer.refresh();
   }
 
-  function setHoveredNode(node?: string) {
-    if (node) {
-      state.hoveredNode = node;
-      state.hoveredNeighbors = new Set(graph.neighbors(node));
-    } else {
-      state.hoveredNode = undefined;
-      state.hoveredNeighbors = undefined;
-    }
-
-    renderer.refresh();
-  }
-
   searchInputs.forEach((searchInput, index) => {
     searchInput.addEventListener("input", (e) => {
       setSearchQuery(searchInput.value || "", index);
-      // const tts = ["0", "1"].map((idx) => document.getElementById("searchTT" + idx));
       const tt = document.getElementById("searchTT" + index.toString());
       const clrStr = state.selected[index].selected !== undefined ? "rgb(128,255,220)" : "#fff";
       (e.target as HTMLInputElement).style.color = clrStr;
@@ -608,13 +644,6 @@ function start(dataRaw) {
           : 0
       ).toString();
     });
-  });
-
-  renderer.on("enterNode", ({ node }) => {
-    setHoveredNode(node);
-  });
-  renderer.on("leaveNode", () => {
-    setHoveredNode(undefined);
   });
 
   const scaryFunction = (node) => {
