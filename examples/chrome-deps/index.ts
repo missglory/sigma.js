@@ -363,7 +363,7 @@ const string2Graph = async (rootNode, i, dataRaw, graph, append = true) => {
       graph.addNode(rootNode, {
         x: cRoot[0],
         y: cRoot[1],
-        size: 20,
+        size: 5,
         color: chroma.random().hex(),
         // label: rootNode.substring(rootNode.lastIndexOf(DELIMETER) + 1),
         label: rootNode,
@@ -380,12 +380,12 @@ const string2Graph = async (rootNode, i, dataRaw, graph, append = true) => {
   }[] = [
     {
       name: rootNode,
-      lvl: -2,
+      lvl: -1,
     },
   ];
   lines.forEach((line) => {
     const lvl = line.lastIndexOf(" ");
-
+  
     const l = line.replaceAll(" ", "").replaceAll("...", "");
     // const l = line;
 
@@ -398,7 +398,7 @@ const string2Graph = async (rootNode, i, dataRaw, graph, append = true) => {
       graph.addNode(l, {
         x: c[0] * downscaleConst,
         y: c[1] * downscaleConst,
-        size: Math.pow(30 / (lvl + 2), 0.5),
+        size: Math.pow(15 / (lvl + 2), 0.5),
         // size: 4,
         color: chroma.random().hex(),
       });
