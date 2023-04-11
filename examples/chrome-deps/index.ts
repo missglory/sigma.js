@@ -421,10 +421,16 @@ const forEachLine = (line, rootNode, hierarchy, append) => {
       hierarchy.pop();
     }
 };
+// enum Direction {
+//   APPEND,
+//   SUBTRACT
+// }
 
+const dropNodeF = (node, i, graph) => { graph.dropNode(node); }
 // let global_Lines = 0;
 const string2Graph = async (rootNode, i, dataRaw, graph, append = true) => {
   const cRoot = chroma.random()._rgb;
+  const lines: string[] | undefined = dataRaw.deps;
   try {
     if (append) {
       graph.addNode(rootNode, {
@@ -435,9 +441,14 @@ const string2Graph = async (rootNode, i, dataRaw, graph, append = true) => {
         // label: rootNode.substring(rootNode.lastIndexOf(DELIMETER) + 1),
         label: rootNode,
       });
-    } 
+    } else if (lines === undefined) {
+      let pattern = new RegExp(rootNode);
+      // graph.dropNode(rootNode);
+      for (let node of graph.filterNodes((node) => pattern.test(node))) {
+        graph.dropNode(node);
+      }
+    }
   } catch (e) {}
-  const lines: string[] = dataRaw.deps;
 
   const hierarchy: {
     name: string;
@@ -644,13 +655,17 @@ function start(dataRaw, append = true) {
       searchInputs[selection].value = query;
     }
 
+    const pattern = new RegExp(query);
+
     const suggestions = graph
       .nodes()
       .map((n) => ({
         id: n,
-        label: "^" + n + "$",
+        // label: "^" + n + "$",
+        label: n,
       }))
-      .filter(({ label }) => label.includes(query));
+      // .filter(({ label }) => label.includes(query));
+      .filter(({label}) => pattern.test(label));
 
     if (suggestions.length === 1 && suggestions[0].label.includes(query)) {
       state.selected[selection] = { selected: suggestions[0].id, suggest: undefined };
