@@ -5,7 +5,6 @@ import { singleSource } from "graphology-shortest-path/unweighted";
 import Sigma from "sigma";
 import { Coordinates, EdgeDisplayData, NodeDisplayData } from "sigma/types";
 import chroma from "chroma-js";
-import EdgesDefaultProgram from "sigma/rendering/webgl/programs/edge";
 import EdgesFastProgram from "sigma/rendering/webgl/programs/edge.fast";
 
 import FA2Layout from "graphology-layout-forceatlas2/worker";
@@ -16,7 +15,7 @@ const diffEditor = editor.create(document.getElementById("diffContainer"), {
   language: "json",
   automaticLayout: true,
   // renderValidationDecorations: "on"
-  fontSize: 10,
+  fontSize: 9,
   wordWrap: "on",
   tabSize: 1,
 });
@@ -76,12 +75,24 @@ const getHeatMapColor = (v: number) => {
   return colorScale[Math.min(colorScale.length, i)][1];
 };
 
-window.addEventListener("keydown", function (e) {
+let ctrlPressed = false;
+let scaleMult = 10;
+window.addEventListener("keydown", (e) => {
   if (e.keyCode == 32) {
     e.preventDefault();
     document.getElementById("fa2").dispatchEvent(new Event("click"));
   }
+  if (e.keyCode == 17) {
+    ctrlPressed = true;
+  }
 });
+
+window.addEventListener("keyup", (e) => {
+  if (e.keyCode == 17) {
+    ctrlPressed = false;
+  }
+});
+
 window.scrollTo({
   top: 0,
 });
@@ -242,6 +253,15 @@ document.getElementById("outn").onclick = (ev) => {
   renderer.refresh();
 };
 
+document.getElementById("sizeInput").oninput = (e) => {
+  try{
+    const v = parseFloat((e.target as HTMLInputElement).value);
+    if (v == 0) { return; } 
+    scaleMult = v;
+    renderer.refresh();
+  } catch (e) {}
+};
+
 const addLayerButton = document.getElementById("addLayer");
 addLayerButton.addEventListener("click", (e: MouseEvent) => {
   const layerNum = document.getElementById("layerNum");
@@ -299,7 +319,7 @@ for (const el of document.getElementsByClassName("collapseButton")) {
 
 const graph2Object = (graph: graphology.DirectedGraph) => {
   let res = {};
-  graph.nodes().forEach((n) => {
+  graph.forEachNode((n) => {
     let nodeObj = {};
     nodeObj[n] = { deps: graph.neighbors(n) };
     Object.assign(res, nodeObj);
@@ -356,40 +376,17 @@ const graph2diffFull = async (graph: graphology.DirectedGraph) => {
   appendText(v, diffEditor.getModel());
 };
 
-const string2Graph = async (rootNode, i, dataRaw, graph, append = true) => {
-  const cRoot = chroma.random()._rgb;
-  try {
-    if (append) {
-      graph.addNode(rootNode, {
-        x: cRoot[0],
-        y: cRoot[1],
-        size: 5,
-        color: chroma.random().hex(),
-        // label: rootNode.substring(rootNode.lastIndexOf(DELIMETER) + 1),
-        label: rootNode,
-      });
-    } else {
-      graph.dropNode(rootNode);
-    }
-  } catch (e) {}
-  const lines: string[] = dataRaw[rootNode].deps;
+const someEdgeI = (e) => true;
 
-  const hierarchy: {
-    name: string;
-    lvl: number;
-  }[] = [
-    {
-      name: rootNode,
-      lvl: -1,
-    },
-  ];
-  lines.forEach((line) => {
+const forEachLine = (line, rootNode, hierarchy, append) => {
     const lvl = line.lastIndexOf(" ");
   
     const l = line.replaceAll(" ", "").replaceAll("...", "");
-    // const l = line;
 
     if (!append) {
+      try{
+        graph.dropEdge(l, rootNode);
+      } catch (e) {}
       return;
     }
 
@@ -398,11 +395,10 @@ const string2Graph = async (rootNode, i, dataRaw, graph, append = true) => {
       graph.addNode(l, {
         x: c[0] * downscaleConst,
         y: c[1] * downscaleConst,
-        size: Math.pow(15 / (lvl + 2), 0.5),
-        // size: 4,
+        // size: Math.pow(15 / (lvl + 2), 0.5),
+        size: 4,
         color: chroma.random().hex(),
       });
-      // graph.setNodeAttribute(l, "label", l.substring(l.lastIndexOf(DELIMETER) + 1));
       graph.setNodeAttribute(l, "label", l);
     } catch (err) {}
 
@@ -424,12 +420,55 @@ const string2Graph = async (rootNode, i, dataRaw, graph, append = true) => {
     while (hierarchy.length > 0 && lvl < hierarchy.at(-1).lvl) {
       hierarchy.pop();
     }
-  });
+};
+
+// let global_Lines = 0;
+const string2Graph = async (rootNode, i, dataRaw, graph, append = true) => {
+  const cRoot = chroma.random()._rgb;
+  try {
+    if (append) {
+      graph.addNode(rootNode, {
+        x: cRoot[0],
+        y: cRoot[1],
+        size: 4,
+        color: chroma.random().hex(),
+        // label: rootNode.substring(rootNode.lastIndexOf(DELIMETER) + 1),
+        label: rootNode,
+      });
+    } 
+  } catch (e) {}
+  const lines: string[] = dataRaw.deps;
+
+  const hierarchy: {
+    name: string;
+    lvl: number;
+  }[] = [
+    {
+      name: rootNode,
+      lvl: -1,
+    },
+  ];
+
+  const fel = (line) => {
+    forEachLine(line, rootNode, hierarchy, append);
+  };
+  lines.forEach(fel);
+
+  if (!append) {
+    if (!graph.someInEdge(rootNode, someEdgeI)) {
+      graph.dropNode(rootNode);
+    } 
+  }
+
+  // global_Lines++;
+  // if (!(global_Lines % 100)) {
+  //   renderer?.refresh();
+  // }
 };
 
 const object2Graph = async (dataRaw, graph: graphology.DirectedGraph, append = true) => {
-  Object.keys(dataRaw).forEach((rootNode, i) => {
-    string2Graph(rootNode, i, dataRaw, graph, append);
+  Object.entries(dataRaw).forEach((rootNode, i) => {
+    string2Graph(rootNode[0], i, rootNode[1], graph, append);
   });
 };
 
@@ -452,11 +491,12 @@ const setupRenderer = () => {
   };
   renderer.on("clickNode", (e) => {
     // if (searchInputs)
-    searchInputs.forEach((input, i) => {
-      if (document.activeElement === input) {
-        clickFunc(e, i);
-      }
-    });
+    // searchInputs.forEach((input, i) => {
+    //   if (document.activeElement === input) {
+    //     clickFunc(e, i);
+    //   }
+    // });
+    clickFunc(e, 0);
   });
   renderer.on("rightClickNode", (e) => {
     clickFunc(e, 1);
@@ -539,7 +579,9 @@ function start(dataRaw, append = true) {
     .join("\n");
 
   async function assignPath(node1, node2) {
-    state.paths = allSimplePaths(graph, node1, node2, { maxDepth: 5 }).map(
+    const maxDepthInput = document.getElementById("maxDepthInput") as HTMLInputElement;
+    const v = parseInt(maxDepthInput.value)
+    state.paths = allSimplePaths(graph, node1, node2, { maxDepth: v }).map(
       (path) => new Map(path.map((p, i, ar) => [p, i / ar.length])),
     );
     state.paths.sort((path1, path2) => (path1.size < path2.size ? -1 : path1.size === path2.size ? 0 : 1));
@@ -671,6 +713,8 @@ function start(dataRaw, append = true) {
 
   renderer.setSetting("nodeReducer", (node, data) => {
     const res: Partial<NodeDisplayData> = { ...data };
+
+    res.size = graph.getNodeAttribute(node, 'size') * scaleMult / 10;
 
     if (state.hoveredNeighbors && !state.hoveredNeighbors.has(node) && state.hoveredNode !== node) {
       res.label = "";

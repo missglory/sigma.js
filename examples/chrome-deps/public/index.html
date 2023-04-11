@@ -72,7 +72,8 @@
 			height: 200px;
 		}		 */
 		#diffContainer {
-			height: 250px;
+			height: 400px;
+			/* width: 300px; */
 		}
 
 		.collapseButton {
@@ -118,6 +119,8 @@
 				<button id="collapse2" class="collapseButton">▼</button>
 				<button type="submit" id="resetBtn">Reset graph</button>
 				<button type="button" id="fa2">Stop layout ⏸</button>
+				<n> Size: </n>
+				<input type="number" id="sizeInput" maxLength="3" style="width:35px" value="10"></input>
 			</fieldset>
 			<fieldset>
 				<button id="collapse3" class="collapseButton">▼</button>
@@ -140,8 +143,10 @@
 				<button id="collapse4" class="collapseButton">▼</button>
 				<b id="pathsLabel">0 paths</b>
 				<button id="pathLeftButton">◀</button>
-				<input type="number" max="6" min="1" maxlength="1" id="pathIndex" value="1"></input></input>
+				<input type="number" max="6" min="1" maxlength="1" id="pathIndex" value="1"></input>
 				<button id="pathRightButton">▶</button>
+				<b>Max depth: </b>
+				<input type="number" max="7" min="1" maxlength="1" id="maxDepthInput" value="5"></input>
 				<br />
 				<br />
 				<div id="pathList"></div>
