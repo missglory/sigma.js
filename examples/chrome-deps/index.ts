@@ -428,7 +428,7 @@ const forEachLine = (line, rootNode, hierarchy, append) => {
 
 const dropNodeF = (node, i, graph) => { graph.dropNode(node); }
 // let global_Lines = 0;
-const string2Graph = async (rootNode, i, dataRaw, graph, append = true) => {
+const string2Graph = (rootNode, i, dataRaw, graph, append = true) => {
   const cRoot = chroma.random()._rgb;
   const lines: string[] | undefined = dataRaw.deps;
   try {
@@ -481,6 +481,7 @@ const object2Graph = async (dataRaw, graph: graphology.DirectedGraph, append = t
   Object.entries(dataRaw).forEach((rootNode, i) => {
     string2Graph(rootNode[0], i, rootNode[1], graph, append);
   });
+  document.getElementById("nEdges").innerHTML = graph.edges().length.toString();
 };
 
 const setupRenderer = () => {
@@ -667,7 +668,7 @@ function start(dataRaw, append = true) {
       // .filter(({ label }) => label.includes(query));
       .filter(({label}) => pattern.test(label));
 
-    if (suggestions.length === 1 && suggestions[0].label.includes(query)) {
+    if (suggestions.length === 1) {
       state.selected[selection] = { selected: suggestions[0].id, suggest: undefined };
       const selectedOther = state.selected[(selection + 1) % 2]?.selected;
       if (selectedOther !== undefined) {
