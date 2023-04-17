@@ -10,6 +10,7 @@ import EdgesFastProgram from "sigma/rendering/webgl/programs/edge.fast";
 import FA2Layout from "graphology-layout-forceatlas2/worker";
 import forceAtlas2 from "graphology-layout-forceatlas2";
 import { editor } from "monaco-editor";
+import * as ReachableCounts from './ReachableCounts';
 
 const diffEditor = editor.create(document.getElementById("diffContainer"), {
   language: "json",
@@ -20,6 +21,15 @@ const diffEditor = editor.create(document.getElementById("diffContainer"), {
   tabSize: 1,
 });
 let editorWW = true;
+
+const sortEditor = editor.create(document.getElementById("sortContainer"), {
+  language: "json",
+  // automaticLayout: true,
+  // renderValidationDecorations: "on"
+  fontSize: 9,
+  // wordWrap: "on",
+  tabSize: 1,
+});
 
 Promise.all([fetch("./chrome_deps.json")])
   .then((rs) =>
@@ -342,11 +352,11 @@ function appendText(text, model) {
   model.pushEditOperations([], [op], null);
 }
 
-const line2diff = async (n, graph) => {
+const line2diff = async (n, graph, editor = diffEditor) => {
   let nodeObj = {};
   nodeObj[n] = { deps: graph.neighbors(n) };
   // Object.assign(res, nodeObj);
-  const model = diffEditor.getModel();
+  const model = editor.getModel();
   // const textToAppend = "This is some new text to append.";
   const textToAppend = JSON.stringify(nodeObj, null, 2);
 
@@ -570,9 +580,15 @@ const setupRenderer = () => {
 
 setupRenderer();
 
+
 function start(dataRaw, append = true) {
   object2Graph(dataRaw, graph, append);
   graph2diffFull(graph);
+
+  ReachableCounts.countReachableNodes(graph)
+  ReachableCounts.assignReachableCounts(graph);
+  // .assignReachableCounts(graph);
+  ReachableCounts.reachableCounts2Editor(graph, sortEditor);
 
   if (append) {
     layout?.kill();
@@ -663,7 +679,8 @@ function start(dataRaw, append = true) {
       .map((n) => ({
         id: n,
         // label: "^" + n + "$",
-        label: n,
+        label: n
+        // label: n
       }))
       // .filter(({ label }) => label.includes(query));
       .filter(({label}) => pattern.test(label));

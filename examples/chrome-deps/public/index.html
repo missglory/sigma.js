@@ -46,6 +46,8 @@
 			top: 10px;
 			left: 10px;
 			height: fit-content;
+			overflow-y: scroll;
+			width: fit-content;
 		}
 
 		* {
@@ -74,6 +76,7 @@
 		#diffContainer {
 			height: 400px;
 			/* width: 300px; */
+			margin-bottom: 3px;
 		}
 
 		.collapseButton {
@@ -85,16 +88,55 @@
 			/* border: 0; */
 			resize: both;
 		}
-		#diffContainer{
-			margin-bottom: 3px;
-		}
+
 		#reroute {
 			margin: 2px;
+		}
+
+		#sortContainer {
+			height: 300px
+		}
+
+		/* Hide scrollbar by default */
+		.scroll-container::-webkit-scrollbar {
+			display: none;
+		}
+
+		/* Show scrollbar on hover */
+		.scroll-container:hover::-webkit-scrollbar {
+			display: block;
+		}
+
+		/* Style the scrollbar */
+		.scroll-container::-webkit-scrollbar {
+			width: 10px;
+			border-radius: 10px;
+			background-color: #f5f5f5;
+		}
+
+		/* Style the scrollbar thumb */
+		.scroll-container::-webkit-scrollbar-thumb {
+			border-radius: 10px;
+			background-color: #888;
+		}
+
+		/* Add transition to the scrollbar */
+		.scroll-container::-webkit-scrollbar-thumb {
+			transition: all 0.3s ease-in-out;
+		}
+
+		/* Change the scrollbar thumb color on hover */
+		.scroll-container:hover::-webkit-scrollbar-thumb {
+			background-color: #555;
+		}
+
+		.scroll-container::-webkit-scrollbar-corner {
+  		display: none;
 		}
 	</style>
 	<main>
 		<div id="sigma-container"></div>
-		<div id="interface">
+		<div id="interface" class="scroll-container">
 			<fieldset>
 				<button id="collapse0" class="collapseButton">▼</button>
 				<small>Edges: <b id="nEdges">0</b></small>
@@ -105,8 +147,12 @@
 				<button id="wwButton">Word wrap</button>
 			</fieldset>
 			<fieldset>
+				<button id="collapse4" class="collapseButton">▼</button>
+				<div id="sortContainer"></div>
+			</fieldset>
+			<fieldset>
 				<button id="collapse1" class="collapseButton">▼</button>
-				<br/>
+				<br />
 				<input type="search" id="search-input0" list="suggestions0" placeholder="Try searching for a node..." />
 				<tt id="searchTT0">0</tt>
 				<br />
