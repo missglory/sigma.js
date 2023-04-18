@@ -31,25 +31,45 @@ const sortEditor = editor.create(document.getElementById("sortContainer"), {
   tabSize: 1,
 });
 
+const reachableEditor = editor.create(document.getElementById("reachableContainer"), {
+  language: "json",
+  // automaticLayout: true,
+  // renderValidationDecorations: "on"
+  fontSize: 9,
+  // wordWrap: "on",
+  tabSize: 1,
+});
+
+let reachableInOut = "In";
+document.getElementById("reachableInOutButton").onclick = (e) => {
+  const html = (e.target as HTMLElement).innerHTML;
+  reachableInOut = html;
+  if (html === "In") {
+    (e.target as HTMLElement).innerHTML = "Out";
+  } else {
+    (e.target as HTMLElement).innerHTML = "In";
+  }
+}
+
+document.getElementById("reachableGetButton").onclick = (e) => {
+  if (state.selected[0].selected === undefined) {
+    alert("No selected 1st");
+    return;
+  }
+  const rs = ReachableCounts.getReachableNodes(graph, state.selected[0].selected, reachableInOut === "In");
+  appendText(Array.from(rs).join('\n'), reachableEditor.getModel());
+}
+
 Promise.all([fetch("./chrome_deps.json")])
   .then((rs) =>
     Promise.all(
       rs.map((r) => {
-        // console.log(r);
-        // diffEditor.setValue(JSON.stringify(r));
-        // diffEditor.setValue(r.json());
         return r.json();
       }),
     ),
   )
   .then(
-    // .then((v) => {
-    // console.log(JSON.parse(v[0]));
-    // console.log(JSON.stringify(v[0]));
-    // diffEditor.setValue(JSON.parse(v[0]));
-    // }
     Function.prototype.apply.bind(start, start),
-    // Function.prototype.apply.bind(diffEditor.setValue, diffEditor.setValue)
   );
 
 const searchInputs = [0, 1].map((v) => {
@@ -214,7 +234,6 @@ subtractButton.onclick = (e) => {
 };
 
 document.getElementById("wwButton").onclick = (e) => {
-  // diffEditor.getOption(");
   editorWW = !editorWW;
   diffEditor.updateOptions({
     wordWrap: editorWW ? "on" : "off",
@@ -355,28 +374,13 @@ function appendText(text, model) {
 const line2diff = async (n, graph, editor = diffEditor) => {
   let nodeObj = {};
   nodeObj[n] = { deps: graph.neighbors(n) };
-  // Object.assign(res, nodeObj);
   const model = editor.getModel();
-  // const textToAppend = "This is some new text to append.";
   const textToAppend = JSON.stringify(nodeObj, null, 2);
-
-  // const range = model.getFullModelRange();
-  // const op = {
-  //   identifier: { major: 1, minor: 1 },
-  //   range: range,
-  //   text: textToAppend,
-  //   forceMoveMarkers: true,
-  // };
-
-  // model.pushEditOperations([], [op], null);
   appendText(textToAppend, model);
 };
 
 const graph2diff = async (graph: graphology.DirectedGraph) => {
   graph.nodes().forEach((n) => {
-    // let nodeObj = {};
-    // nodeObj[n] = { deps: graph.neighbors(n) };
-    // Object.assign(res, nodeObj);
     line2diff(n, graph);
   });
 };
@@ -391,7 +395,13 @@ const someEdgeI = (e) => true;
 const forEachLine = (line, rootNode, hierarchy, append) => {
     const lvl = line.lastIndexOf(" ");
   
-    const l = line.replaceAll(" ", "").replaceAll("...", "");
+    const l = line
+    .replace(/^\s+/g, '')
+    .replace(/\.\.\.$/g, '');
+
+    if (l.length > 3 && l.at(-1) == "." && l.at(-2) === "." && l.at(-3) === ".") {
+      return;
+    }
 
     if (!append) {
       try{
@@ -402,7 +412,9 @@ const forEachLine = (line, rootNode, hierarchy, append) => {
 
     try {
       const c = chroma.random()._rgb;
-      graph.addNode(l, {
+      graph.addNode(
+        l, 
+        {
         x: c[0] * downscaleConst,
         y: c[1] * downscaleConst,
         // size: Math.pow(15 / (lvl + 2), 0.5),
@@ -410,7 +422,9 @@ const forEachLine = (line, rootNode, hierarchy, append) => {
         color: chroma.random().hex(),
       });
       graph.setNodeAttribute(l, "label", l);
-    } catch (err) {}
+    } catch (err) {
+      appendText(l + "\n", diffEditor.getModel());
+    }
 
     try {
       if (hierarchy.length > 0) {
@@ -431,13 +445,8 @@ const forEachLine = (line, rootNode, hierarchy, append) => {
       hierarchy.pop();
     }
 };
-// enum Direction {
-//   APPEND,
-//   SUBTRACT
-// }
 
 const dropNodeF = (node, i, graph) => { graph.dropNode(node); }
-// let global_Lines = 0;
 const string2Graph = (rootNode, i, dataRaw, graph, append = true) => {
   const cRoot = chroma.random()._rgb;
   const lines: string[] | undefined = dataRaw.deps;
@@ -480,11 +489,6 @@ const string2Graph = (rootNode, i, dataRaw, graph, append = true) => {
       graph.dropNode(rootNode);
     } 
   }
-
-  // global_Lines++;
-  // if (!(global_Lines % 100)) {
-  //   renderer?.refresh();
-  // }
 };
 
 const object2Graph = async (dataRaw, graph: graphology.DirectedGraph, append = true) => {
@@ -585,6 +589,7 @@ function start(dataRaw, append = true) {
   object2Graph(dataRaw, graph, append);
   graph2diffFull(graph);
 
+  ReachableCounts.reachableCounts.clear();
   ReachableCounts.countReachableNodes(graph)
   ReachableCounts.assignReachableCounts(graph);
   // .assignReachableCounts(graph);
