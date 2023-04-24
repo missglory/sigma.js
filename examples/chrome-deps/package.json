@@ -4,7 +4,7 @@
   "description": "Sigma example : Node drag'n'drop, with mouse graph creation",
   "main": "index.js",
   "scripts": {
-    "start": "kotatsu serve --typescript index.ts --public / ./public -p 9000",
+    "start": "clear && kotatsu serve --typescript index.ts --public / ./public -p 9000",
     "ru": "rollup -c -w"
   },
   "license": "MIT",
@@ -19,6 +19,7 @@
     "rollup-plugin-serve": "^2.0.2",
     "rollup-plugin-svelte": "^7.1.4",
     "sigma": "latest",
+    "surrealdb.js": "^0.6.0",
     "svelte-preprocess": "^5.0.3",
     "uuid": "^8.3.2"
   },

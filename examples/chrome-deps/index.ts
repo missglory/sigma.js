@@ -1,64 +1,17 @@
 import * as graphology from "graphology";
 import { allSimplePaths } from "graphology-simple-path";
-// import dijkstra from 'graphology-shortest-path/dijkstra';
-import { singleSource } from "graphology-shortest-path/unweighted";
-import Sigma from "sigma";
 import { Coordinates, EdgeDisplayData, NodeDisplayData } from "sigma/types";
 import chroma from "chroma-js";
-import EdgesFastProgram from "sigma/rendering/webgl/programs/edge.fast";
 
 import FA2Layout from "graphology-layout-forceatlas2/worker";
 import forceAtlas2 from "graphology-layout-forceatlas2";
-import { editor } from "monaco-editor";
-import * as ReachableCounts from './ReachableCounts';
+import * as Surreal from './Surreal';
+import { appendText, diffEditor } from "./Editors";
+import { state } from "./State";
+import { graph } from "./Graph";
+import { getHeatMapColor, renderer } from "./Renderer";
 
-const diffEditor = editor.create(document.getElementById("diffContainer"), {
-  language: "json",
-  automaticLayout: true,
-  // renderValidationDecorations: "on"
-  fontSize: 9,
-  wordWrap: "on",
-  tabSize: 1,
-});
-let editorWW = true;
 
-const sortEditor = editor.create(document.getElementById("sortContainer"), {
-  language: "json",
-  // automaticLayout: true,
-  // renderValidationDecorations: "on"
-  fontSize: 9,
-  // wordWrap: "on",
-  tabSize: 1,
-});
-
-const reachableEditor = editor.create(document.getElementById("reachableContainer"), {
-  language: "json",
-  // automaticLayout: true,
-  // renderValidationDecorations: "on"
-  fontSize: 9,
-  // wordWrap: "on",
-  tabSize: 1,
-});
-
-let reachableInOut = "In";
-document.getElementById("reachableInOutButton").onclick = (e) => {
-  const html = (e.target as HTMLElement).innerHTML;
-  reachableInOut = html;
-  if (html === "In") {
-    (e.target as HTMLElement).innerHTML = "Out";
-  } else {
-    (e.target as HTMLElement).innerHTML = "In";
-  }
-}
-
-document.getElementById("reachableGetButton").onclick = (e) => {
-  if (state.selected[0].selected === undefined) {
-    alert("No selected 1st");
-    return;
-  }
-  const rs = ReachableCounts.getReachableNodes(graph, state.selected[0].selected, reachableInOut === "In");
-  appendText(Array.from(rs).join('\n'), reachableEditor.getModel());
-}
 
 Promise.all([fetch("./chrome_deps.json")])
   .then((rs) =>
@@ -72,7 +25,7 @@ Promise.all([fetch("./chrome_deps.json")])
     Function.prototype.apply.bind(start, start),
   );
 
-const searchInputs = [0, 1].map((v) => {
+export const searchInputs = [0, 1].map((v) => {
   return document.getElementById("search-input" + v.toString()) as HTMLInputElement;
 });
 const searchSuggestions = document.getElementById("suggestions") as HTMLDataListElement;
@@ -83,35 +36,13 @@ const layers = new Set([0]);
 
 const downscaleConst = 1;
 
-const getHeatMapColor = (v: number) => {
-  v = Math.min(v, 1.1);
-  const colorScale = [
-    ["0.00000", "rgb(165,0,38)"],
-    ["0.11111", "rgb(215,48,39)"],
-    ["0.22222", "rgb(244,109,67)"],
-    ["0.33333", "rgb(253,174,97)"],
-    ["0.44444", "rgb(254,224,144)"],
-    ["0.55555", "rgb(224,243,248)"],
-    ["0.66666", "rgb(171,217,233)"],
-    ["0.77777", "rgb(116,173,209)"],
-    ["0.88888", "rgb(69,117,180)"],
-    ["1.00000", "rgb(49,54,149)"],
-    ["1.10000", "rgb(29,10,100)"],
-  ];
-  let i = 0;
-  while (parseFloat(colorScale[i][0]) < v) {
-    i++;
-  }
-  return colorScale[Math.min(colorScale.length, i)][1];
-};
 
 let ctrlPressed = false;
-let scaleMult = 10;
 window.addEventListener("keydown", (e) => {
-  if (e.keyCode == 32) {
-    e.preventDefault();
-    document.getElementById("fa2").dispatchEvent(new Event("click"));
-  }
+  // if (e.keyCode == 32) {
+  //   e.preventDefault();
+  //   document.getElementById("fa2").dispatchEvent(new Event("click"));
+  // }
   if (e.keyCode == 17) {
     ctrlPressed = true;
   }
@@ -144,50 +75,6 @@ const removeParent = (elem: Node) => {
   elem.parentNode.parentNode.removeChild(elem.parentNode);
 };
 
-type Selection = {
-  selected?: string;
-  suggest?: Set<string>;
-  // query: string
-};
-
-const container = document.getElementById("sigma-container") as HTMLElement;
-const graph = new graphology.DirectedGraph({});
-const renderer = new Sigma(graph, container, {
-  defaultEdgeType: "edges-fast",
-  edgeProgramClasses: {
-    // "edges-default": EdgesDefaultProgram,
-    "edges-fast": EdgesFastProgram,
-  },
-});
-
-interface State {
-  hoveredNode?: string;
-  searchQuery: string[];
-  sq2: string;
-  inNeighbors: boolean;
-  outNeighbors: boolean;
-
-  selectedNeighbor?: string;
-  selected: Selection[];
-  paths: Map<string, number>[];
-  pathIndex: number;
-
-  hoveredNeighbors?: Set<string>;
-  sizeMult: number;
-}
-const state: State = {
-  searchQuery: ["", ""],
-  sq2: "",
-  inNeighbors: true,
-  outNeighbors: false,
-  selected: [
-    { selected: undefined, suggest: undefined },
-    { selected: undefined, suggest: undefined },
-  ],
-  paths: [],
-  pathIndex: 0,
-  sizeMult: 1,
-};
 
 let layout: FA2Layout;
 
@@ -233,13 +120,6 @@ subtractButton.onclick = (e) => {
   }
 };
 
-document.getElementById("wwButton").onclick = (e) => {
-  editorWW = !editorWW;
-  diffEditor.updateOptions({
-    wordWrap: editorWW ? "on" : "off",
-  });
-};
-
 const fa2Button = document.getElementById("fa2") as HTMLButtonElement;
 function toggleFA2Layout() {
   if (layout.isRunning()) {
@@ -266,29 +146,6 @@ document.getElementById("reroute").onclick = (ev) => {
     input.value = vals[(index + 1) % vals.length];
     input.dispatchEvent(new Event("input"));
   });
-};
-
-document.getElementById("inn").onclick = (ev) => {
-  const val = (ev.target as HTMLInputElement).checked;
-  state.inNeighbors = val;
-  document.getElementById("inContainer").hidden = !val;
-  // const ttInn = document.getElementById("ttInn");
-  // ttIn.innerHTML = graph.neighbors()
-  renderer.refresh();
-};
-
-document.getElementById("outn").onclick = (ev) => {
-  state.outNeighbors = (ev.target as HTMLInputElement).checked;
-  renderer.refresh();
-};
-
-document.getElementById("sizeInput").oninput = (e) => {
-  try{
-    const v = parseFloat((e.target as HTMLInputElement).value);
-    if (v == 0) { return; } 
-    scaleMult = v;
-    renderer.refresh();
-  } catch (e) {}
 };
 
 const addLayerButton = document.getElementById("addLayer");
@@ -360,16 +217,6 @@ const graph2JSON = async (graph: graphology.DirectedGraph) => {
   return JSON.stringify(graph2Object(graph), null, 1);
 };
 
-function appendText(text, model) {
-  const range = model.getFullModelRange();
-  const op = {
-    identifier: { major: 1, minor: 1 },
-    range: range,
-    text: "\n" + text,
-    forceMoveMarkers: true,
-  };
-  model.pushEditOperations([], [op], null);
-}
 
 const line2diff = async (n, graph, editor = diffEditor) => {
   let nodeObj = {};
@@ -461,7 +308,7 @@ const string2Graph = (rootNode, i, dataRaw, graph, append = true) => {
         label: rootNode,
       });
     } else if (lines === undefined) {
-      let pattern = new RegExp(rootNode);
+      const pattern = new RegExp(rootNode);
       // graph.dropNode(rootNode);
       for (let node of graph.filterNodes((node) => pattern.test(node))) {
         graph.dropNode(node);
@@ -498,102 +345,17 @@ const object2Graph = async (dataRaw, graph: graphology.DirectedGraph, append = t
   document.getElementById("nEdges").innerHTML = graph.edges().length.toString();
 };
 
-const setupRenderer = () => {
-  let draggedNode: string | null = null;
-  let isDragging = false;
-
-  // renderer = new Sigma
-  renderer.on("downNode", (e) => {
-    isDragging = true;
-    draggedNode = e.node;
-    graph.setNodeAttribute(draggedNode, "highlighted", true);
-  });
-
-  const clickFunc = (event, index) => {
-    searchInputs[index].select();
-    const v = "^" + event.node + "$";
-    searchInputs[index].value = v;
-    searchInputs[index].dispatchEvent(new Event("input"));
-  };
-  renderer.on("clickNode", (e) => {
-    // if (searchInputs)
-    // searchInputs.forEach((input, i) => {
-    //   if (document.activeElement === input) {
-    //     clickFunc(e, i);
-    //   }
-    // });
-    clickFunc(e, 0);
-  });
-  renderer.on("rightClickNode", (e) => {
-    clickFunc(e, 1);
-  });
-
-  // On mouse move, if the drag mode is enabled, we change the position of the draggedNode
-  renderer.getMouseCaptor().on("mousemovebody", (e) => {
-    if (!isDragging || !draggedNode) return;
-
-    // Get new position of node
-    const pos = renderer.viewportToGraph(e);
-
-    graph.setNodeAttribute(draggedNode, "x", pos.x);
-    graph.setNodeAttribute(draggedNode, "y", pos.y);
-
-    // Prevent sigma to move camera:
-    e.preventSigmaDefault();
-    e.original.preventDefault();
-    e.original.stopPropagation();
-  });
-
-  // On mouse up, we reset the autoscale and the dragging mode
-  renderer.getMouseCaptor().on("mouseup", () => {
-    if (draggedNode) {
-      graph.removeNodeAttribute(draggedNode, "highlighted");
-    }
-    isDragging = false;
-    draggedNode = null;
-  });
-
-  // Disable the autoscale at the first down interaction
-  renderer.getMouseCaptor().on("mousedown", () => {
-    if (!renderer.getCustomBBox()) renderer.setCustomBBox(renderer.getBBox());
-  });
-
-  renderer.on("clickStage", ({ event }: { event: { x: number; y: number } }) => {
-    const coordForGraph = renderer.viewportToGraph({ x: event.x, y: event.y });
-  });
-
-  function setHoveredNode(node?: string) {
-    if (node) {
-      state.hoveredNode = node;
-      state.hoveredNeighbors = new Set(graph.neighbors(node));
-    } else {
-      state.hoveredNode = undefined;
-      state.hoveredNeighbors = undefined;
-    }
-
-    renderer.refresh();
-  }
-
-  renderer.on("enterNode", ({ node }) => {
-    setHoveredNode(node);
-  });
-  renderer.on("leaveNode", () => {
-    setHoveredNode(undefined);
-  });
-};
-
-setupRenderer();
-
 
 function start(dataRaw, append = true) {
-  object2Graph(dataRaw, graph, append);
-  graph2diffFull(graph);
+  // object2Graph(dataRaw, graph, append);
+  // graph2diffFull(graph);
 
-  ReachableCounts.reachableCounts.clear();
-  ReachableCounts.countReachableNodes(graph)
-  ReachableCounts.assignReachableCounts(graph);
-  // .assignReachableCounts(graph);
-  ReachableCounts.reachableCounts2Editor(graph, sortEditor);
+  // ReachableCounts.reachableCounts.clear();
+  // ReachableCounts.countReachableNodes(graph)
+  // ReachableCounts.assignReachableCounts(graph);
+  // // .assignReachableCounts(graph);
+  // ReachableCounts.reachableCounts2Editor(graph, sortEditor);
+  Surreal.surrealConnect();
 
   if (append) {
     layout?.kill();
@@ -749,58 +511,4 @@ function start(dataRaw, append = true) {
     return layers;
   };
 
-  renderer.setSetting("nodeReducer", (node, data) => {
-    const res: Partial<NodeDisplayData> = { ...data };
-
-    res.size = graph.getNodeAttribute(node, 'size') * scaleMult / 10;
-
-    if (state.hoveredNeighbors && !state.hoveredNeighbors.has(node) && state.hoveredNode !== node) {
-      res.label = "";
-      res.color = "#877";
-    }
-
-    if (state.paths.length > state.pathIndex && state.paths[state.pathIndex].has(node)) {
-      res.highlighted = true;
-      res.color = getHeatMapColor(state.paths[state.pathIndex].get(node));
-      return res;
-    }
-
-    const nodeOut = state.selected[0].selected;
-    if (
-      nodeOut === node ||
-      (state.inNeighbors && graph.areInNeighbors(node, nodeOut)) ||
-      (state.outNeighbors && graph.areOutNeighbors(node, nodeOut))
-    ) {
-      res.highlighted = true;
-      return res;
-    }
-    if (state.selected[0].suggest && !state.selected[0].suggest.has(node)) {
-      res.label = "";
-      res.color = "#877";
-    }
-
-    return res;
-  });
-
-  renderer.setSetting("edgeReducer", (edge, data) => {
-    const res: Partial<EdgeDisplayData> = { ...data };
-
-    const currPath = state.paths.length > state.pathIndex ? state.paths[state.pathIndex] : null;
-    if (currPath && currPath.has(graph.source(edge)) && currPath.has(graph.target(edge))) {
-      res.color = getHeatMapColor(currPath.get(graph.source(edge)));
-      res.zIndex = 10;
-      return res;
-    }
-
-    if (
-      (state.hoveredNode && !graph.hasExtremity(edge, state.hoveredNode)) ||
-      (state.selected[0].suggest &&
-        (!state.selected[0].suggest.has(graph.source(edge)) || !state.selected[0].suggest.has(graph.target(edge))))
-    ) {
-      res.hidden = true;
-      return res;
-    }
-
-    return res;
-  });
 }
