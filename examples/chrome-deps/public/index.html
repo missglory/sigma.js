@@ -47,7 +47,7 @@
 			left: 10px;
 			height: fit-content;
 			overflow-y: scroll;
-			width: fit-content;
+			width: 95%;
 		}
 
 		* {
@@ -74,9 +74,26 @@
 			height: 200px;
 		}		 */
 		#diffContainer {
-			height: 400px;
-			/* width: 300px; */
+			height: 100px;
 			margin-bottom: 3px;
+		}
+
+
+		#nameContainer {
+			height: 11px;
+			margin-bottom: 3px;
+		}
+
+		#sortContainer {
+			height: 500px;
+		}
+
+		#reachableContainer {
+			height: 100px;
+		}
+		
+		.editor {
+			width: 100%;
 		}
 
 		.collapseButton {
@@ -93,13 +110,6 @@
 			margin: 2px;
 		}
 
-		#sortContainer {
-			height: 300px
-		}
-
-		#reachableContainer {
-			height: 300px
-		}
 
 		.scroll-container {
 			height: 100%;
@@ -153,22 +163,28 @@
 			<fieldset>
 				<button id="collapse0" class="collapseButton">▼</button>
 				<small>Edges: <b id="nEdges">0</b></small>
-				<div id="diffContainer"></div>
+				<div id="nameContainer" class="editor"></div>
+				<div id="diffContainer" class="editor"></div>
 				<button id="appendButton">Append</button>
 				<button id="subtractButton">Subtract</button>
 				<!-- <button id="revertButton">Revert</button> -->
 				<button id="wwButton">Word wrap</button>
 				<button id="queryButton">Query</button>
+				<button id="selectButton">Select</button>
+				<button id="createButton">Create</button>
+				<button id="updateButton">Update</button>
+				<button id="deleteButton">Delete</button>
 			</fieldset>
 			<fieldset>
 				<button id="collapse4" class="collapseButton">▼</button>
 				<small>Reachable counts sort</small>
-				<div id="sortContainer"></div>
+				<div id="sortContainer" class="editor"></div>
 			</fieldset>
 			<fieldset>
 				<button id="collapse5" class="collapseButton">▼</button>
 				<small>Reachable nodes</small>
-				<div id="reachableContainer"></div>
+				<input type="number" value="1"></input>
+				<div id="reachableContainer" class="editor"></div>
 				<button id="reachableGetButton">Get</button>
 				<button id="reachableInOutButton">Out</button>
 			</fieldset>
