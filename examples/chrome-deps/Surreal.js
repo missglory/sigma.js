@@ -67,7 +67,7 @@ document.getElementById("queryButton").onclick = async (e) => {
 	const q = await db.query(val, {});
 	// appendText(JSON.stringify(q[0].result[0]), sortEditor.getModel());
 	console.log(q);
-	
+
 	// let i = 0;
 	// let resultString = "";
 	// for (let res of q[0].result) {
@@ -77,9 +77,9 @@ document.getElementById("queryButton").onclick = async (e) => {
 	// }
 
 	const resultString = q[0].result
-	.filter((n, i) => { return i < 1000; })
-	.map(n => { return JSON.stringify(n, null, 1); })
-	.join('\n');
+		.filter((n, i) => { return i < 1000; })
+		.map(n => { return JSON.stringify(n, null, 1); })
+		.join('\n');
 
 	sortEditor.getModel().setValue(resultString);
 	// sortEditor.getAction('editor.action.formatDocument').run();
@@ -99,12 +99,17 @@ document.getElementById("selectButton").onclick = async (e) => {
 	const q = await db.select(val);
 
 	console.log(q)
-	const resultString = q
-	.filter((n, i) => { return i < 1000; })
-	.map(n => { return JSON.stringify(n, null, 1); })
-	.join('\n');
+	let resultString = ''
+	if (q["length"] > 0) {
+		resultString = q
+			.filter((n, i) => { return i < 1000; })
+			.map(n => { return JSON.stringify(n, null, 1); })
+			.join('\n');
+	} else {
+		resultString = JSON.stringify(q);
+	}
 
-	sortEditor.getModel().setValue(resultString);
+	sortEditor.getModel().setValue(resultString, null, 1);
 	// sortEditor.getAction('editor.action.formatDocument').run();
 }
 
@@ -112,33 +117,53 @@ document.getElementById("selectButton").onclick = async (e) => {
 document.getElementById("createButton").onclick = async (e) => {
 	try {
 		const val = JSON.parse(diffEditor.getValue());
-		console.log(val);
-	} catch(e) {
+		// console.log(val);
+		// const val = diffEditor.getValue();
+		const name = nameEditor.getValue();
+		let q;
+		// if (val.length > 0) {
+			console.log("create with val");
+			console.log(val);
+			q = await db.create(name, val);
+		// } else {
+		// 	q = await db.create(name);
+		// }
+		// console.log(q);
+		let resultString = ''
+		if (q["length"] > 0) {
+			resultString = q
+				.filter((n, i) => { return i < 1000; })
+				.map(n => { return JSON.stringify(n, null, 1); })
+				.join('\n');
+		} else {
+			resultString = JSON.stringify(q, null, 1);
+		}
+
+		sortEditor.getModel().setValue(resultString);
+	} catch (e) {
 		alert("create error parse JSON");
 	}
-	const name = nameEditor.getValue();
-	const q = await db.create(name, val);
-	console.log(q);
-	const resultString = q[0].result
-	.filter((n, i) => { return i < 1000; })
-	.map(n => { return JSON.stringify(n, null, 1); })
-	.join('\n');
-
-	sortEditor.getModel().setValue(resultString);
 	// sortEditor.getAction('editor.action.formatDocument').run();
 }
 
 
 document.getElementById("updateButton").onclick = async (e) => {
-	const val = diffEditor.getValue();
+	const val = JSON.parse(diffEditor.getValue());
 	console.log(val);
 	const name = nameEditor.getValue();
-const q = await db.update(name, val);
+	console.log("update with value");
+	console.log(val);
+	let q = await db.update(name, val);
 	console.log(q);
-	const resultString = q[0].result
-	.filter((n, i) => { return i < 1000; })
-	.map(n => { return JSON.stringify(n, null, 1); })
-	.join('\n');
+	let resultString = ''
+	if (q["length"] > 0) {
+		resultString = q
+		.filter((n, i) => { return i < 1000; })
+		.map(n => { return JSON.stringify(n, null, 1); })
+		.join('\n');
+	} else {
+			resultString = JSON.stringify(q, null, 1);
+	}
 
 	sortEditor.getModel().setValue(resultString);
 	// sortEditor.getAction('editor.action.formatDocument').run();

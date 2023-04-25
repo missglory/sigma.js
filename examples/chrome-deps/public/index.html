@@ -13,7 +13,7 @@
 		html,
 		body {
 			font-family: sans-serif;
-			background: #888;
+			background: #000;
 			font-size: 13;
 			overflow: hidden;
 		}
@@ -52,7 +52,7 @@
 
 		* {
 			color: white;
-			border-radius: 10px;
+			border-radius: 8px;
 			background: rgba(0, 0, 0, 0);
 			border-color: white;
 		}
@@ -91,9 +91,9 @@
 		#reachableContainer {
 			height: 100px;
 		}
-		
+
 		.editor {
-			width: 100%;
+			width: 97%;
 		}
 
 		.collapseButton {
@@ -130,13 +130,15 @@
 		.scroll-container::-webkit-scrollbar {
 			/* width: 10px; */
 			border-radius: 10px;
-			background-color: #1b1b1b;
+			background-color: #1b1b1b08;
+			z-index: -2;
 		}
 
 		/* Style the scrollbar thumb */
 		.scroll-container::-webkit-scrollbar-thumb {
 			border-radius: 10px;
 			background-color: #888;
+
 		}
 
 		/* Add transition to the scrollbar */
