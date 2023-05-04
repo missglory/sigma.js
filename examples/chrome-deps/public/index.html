@@ -37,7 +37,7 @@
 		#sigma-container {
 			height: 1000px;
 			width: 98%;
-			background: #888;
+			background: #666;
 		}
 
 		#stopBtn {
@@ -210,11 +210,6 @@
 				<button id="wwButton">Word wrap</button>
 			</fieldset>
 			<fieldset>
-				<button id="collapse7" class="collapseButton">▼</button>
-				<small>Render</small>
-				<div id="sigma-container"></div>
-			</fieldset>
-			<fieldset>
 				<button id="collapse1" class="collapseButton">▼</button>
 				<br />
 				<input type="search" id="search-input0" list="suggestions0" placeholder="Try searching for a node..." />
@@ -228,10 +223,12 @@
 			<datalist id="suggestions"></datalist>
 			<fieldset>
 				<button id="collapse2" class="collapseButton">▼</button>
+				<small>Render</small>
 				<button type="submit" id="resetBtn">Reset graph</button>
 				<button type="button" id="fa2">Stop layout ⏸</button>
-				<n> Size: </n>
+				<n>Nodes size: </n>
 				<input type="number" id="sizeInput" maxLength="3" style="width:35px" value="10"></input>
+				<div id="sigma-container"></div>
 			</fieldset>
 			<fieldset>
 				<button id="collapse3" class="collapseButton">▼</button>

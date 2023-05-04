@@ -38,10 +38,10 @@ const layers = new Set([0]);
 
 let ctrlPressed = false;
 window.addEventListener("keydown", (e) => {
-  // if (e.keyCode == 32) {
-  //   e.preventDefault();
-  //   document.getElementById("fa2").dispatchEvent(new Event("click"));
-  // }
+  if (e.keyCode == 32 && e.ctrlKey) {
+    e.preventDefault();
+    document.getElementById("fa2").dispatchEvent(new Event("click"));
+  }
   if (e.keyCode == 17) {
     ctrlPressed = true;
   }
