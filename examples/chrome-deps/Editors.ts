@@ -38,6 +38,15 @@ export const reachableEditor = editor.create(document.getElementById("reachableC
   tabSize: 1,
 });
 
+export const graphEditor = editor.create(document.getElementById("graphContainer"), {
+  language: "json",
+  automaticLayout: true,
+  renderValidationDecorations: "on",
+  fontSize: 9,
+  wordWrap: "on",
+  tabSize: 1,
+});
+
 document.getElementById("wwButton").onclick = (e) => {
   editorWW = !editorWW;
 

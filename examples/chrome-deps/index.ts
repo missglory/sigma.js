@@ -10,7 +10,7 @@ import { appendText, diffEditor } from "./Editors";
 import { state } from "./State";
 import { downscaleConst, graph } from "./Graph";
 import { getHeatMapColor, renderer } from "./Renderer";
-import { graph2Object, graph2diffFull, object2Graph } from "./FromToGraph";
+import { graph2Object, graph2diffFull, object2Graph, tree2Graph } from "./FromToGraph";
 
 
 
@@ -205,7 +205,8 @@ for (const el of document.getElementsByClassName("collapseButton")) {
 
 
 function start(dataRaw, append = true) {
-  object2Graph(dataRaw, graph, append);
+  // object2Graph(dataRaw, graph, append);
+  tree2Graph(dataRaw, graph);
   graph2diffFull(graph);
 
   // ReachableCounts.reachableCounts.clear();

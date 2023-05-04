@@ -1,7 +1,8 @@
 import * as graphology from "graphology";
 import chroma from "chroma-js";
 import { downscaleConst, graph } from "./Graph";
-import { appendText, diffEditor } from "./Editors";
+import { appendText, graphEditor } from "./Editors";
+import { v4 as uuidv4 } from 'uuid';
 
 export const object2Graph = async (dataRaw, graph: graphology.DirectedGraph, append = true) => {
   Object.entries(dataRaw).forEach((rootNode, i) => {
@@ -10,6 +11,37 @@ export const object2Graph = async (dataRaw, graph: graphology.DirectedGraph, app
   document.getElementById("nEdges").innerHTML = graph.edges().length.toString();
 };
 
+const tree2GraphRecursion = (tree, graph, parentId = null) => {
+  // Add the current node to the graph
+  // const nodeId = tree.id;
+  const nodeId = uuidv4();
+  const cRoot = chroma.random()._rgb;
+  graph.addNode(
+		nodeId,
+		{
+			x: cRoot[0],
+			y: cRoot[1],
+			...tree,
+			children: undefined
+		}
+	);
+
+  // If there's a parent, add an edge between the parent and the current node
+  if (parentId !== null) {
+    graph.addEdge(parentId, nodeId);
+  }
+
+  // If the current node has children, recursively process them
+  if (Array.isArray(tree.children)) {
+    tree.children.forEach(child => tree2GraphRecursion(child, graph, nodeId));
+  }
+}
+
+export const tree2Graph = async (tree, graph) => {
+  // const graph = new Graph();
+  tree2GraphRecursion(tree, graph);
+  return graph;
+}
 
 export const string2Graph = (rootNode, i, dataRaw, graph, append = true) => {
   const cRoot = chroma.random()._rgb;
@@ -88,7 +120,7 @@ export const forEachLine = (line, rootNode, hierarchy, append) => {
       });
       graph.setNodeAttribute(l, "label", l);
     } catch (err) {
-      appendText(l + "\n", diffEditor.getModel());
+      appendText(l + "\n", graphEditor.getModel());
     }
 
     try {
@@ -129,7 +161,7 @@ const graph2JSON = async (graph: graphology.DirectedGraph) => {
 };
 
 
-const line2diff = async (n, graph, editor = diffEditor) => {
+const line2diff = async (n, graph, editor = graphEditor) => {
   let nodeObj = {};
   nodeObj[n] = { deps: graph.neighbors(n) };
   const model = editor.getModel();
@@ -145,5 +177,6 @@ export const graph2diff = async (graph: graphology.DirectedGraph) => {
 
 export const graph2diffFull = async (graph: graphology.DirectedGraph) => {
   const v = await graph2JSON(graph);
-  appendText(v, diffEditor.getModel());
+  appendText(v, graphEditor.getModel());
 };
+
