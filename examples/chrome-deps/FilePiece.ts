@@ -1,7 +1,6 @@
 import { fileNameEditor } from "./Editors";
 
-let fileText = `
-`
+export let fileText = ''
 let lines = fileText.split('\n');
 export const getTextBetweenPositions = (startLine, startColumn, endLine, endColumn) => {
   // Split the file text into an array of lines
@@ -93,7 +92,7 @@ const fileButton = document.getElementById("fileButton")
 fileButton.addEventListener('click', async () => {
   const file = fileNameEditor.getModel().getValue();
   console.log("get file: " + file)
-  const fileContents = await getFileContentsFromEndpoint('http://192.168.0.155:5000/src', file);
+  const fileContents = await getFileContentsFromEndpoint('http://95.84.195.102:5000/src', file);
   console.log(fileContents);
   fileText = fileContents;
   lines = fileText.split('\n');

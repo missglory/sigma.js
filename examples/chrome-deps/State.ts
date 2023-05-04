@@ -1,5 +1,5 @@
 import { appendText, nodeEditor } from "./Editors";
-import { getTextBetweenPositions } from "./FilePiece";
+import { fileText, getTextBetweenPositions } from "./FilePiece";
 import { graph } from "./Graph";
 
 type Selection = {
@@ -31,7 +31,6 @@ export const state: State = {
   outNeighbors: false,
   selected: [
     { selected: undefined, suggest: undefined },
-    { selected: undefined, suggest: undefined },
   ],
   paths: [],
   pathIndex: 0,
@@ -41,8 +40,14 @@ export const state: State = {
 export const updateStateSelection = async (diff, selectionId) => {
   // Object.assign(state, diff);
   if (diff.hasOwnProperty("selected")) {
-    state.selected[selectionId] = diff;
+    let event = null;
+    if (fileText.length === 0) {
+      console.log("test")
+      event = new Event("click");
+      document.getElementById("fileButton").dispatchEvent(event);
+    }
     // if (state.selected[selectionId].selected !== undefined) {
+      state.selected[selectionId] = diff;
     const attrs = graph.getNodeAttributes(state.selected[selectionId].selected);
     const loc = attrs.location;
     graph.setNodeAttribute(state.selected[selectionId].selected, "code", getTextBetweenPositions(loc.line, loc.column, loc.endLine, loc.endColumn));
