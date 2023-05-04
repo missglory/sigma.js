@@ -23,7 +23,7 @@
 			max-width: 1920px;
 		}
 
-		body #sigma-container {
+		body {
 			width: 100%;
 			height: 100%;
 			display: flex;
@@ -32,6 +32,12 @@
 			left: 0%;
 			right: 100%;
 			bottom: 100%;
+		}
+
+		#sigma-container {
+			height: 1000px;
+			width: 98%;
+			background: #888;
 		}
 
 		#stopBtn {
@@ -79,7 +85,7 @@
 		}
 
 
-		#nameContainer {
+		#nameContainer #filenameContainer {
 			height: 11px;
 			margin-bottom: 3px;
 		}
@@ -90,6 +96,10 @@
 
 		#reachableContainer {
 			height: 100px;
+		}
+
+		#graphContainer {
+			height: 150px;
 		}
 
 		.editor {
@@ -160,7 +170,7 @@
 		} */
 	</style>
 	<main>
-		<div id="sigma-container"></div>
+		<!-- <div id="sigma-container"></div> -->
 		<div id="interface" class="scroll-container">
 			<fieldset>
 				<button id="collapse0" class="collapseButton">▼</button>
@@ -189,6 +199,20 @@
 				<div id="reachableContainer" class="editor"></div>
 				<button id="reachableGetButton">Get</button>
 				<button id="reachableInOutButton">Out</button>
+			</fieldset>
+			<fieldset>
+				<button id="collapse6" class="collapseButton">▼</button>
+				<small>Graph</small>
+				<div id="filenameContainer" class="editor"></div>
+				<div id="graphContainer" class="editor"></div>
+				<button id="graphAppendButton">Append</button>
+				<button id="graphSubtractButton">Subtract</button>
+				<button id="wwButton">Word wrap</button>
+			</fieldset>
+			<fieldset>
+				<button id="collapse7" class="collapseButton">▼</button>
+				<small>Render</small>
+				<div id="sigma-container"></div>
 			</fieldset>
 			<fieldset>
 				<button id="collapse1" class="collapseButton">▼</button>
