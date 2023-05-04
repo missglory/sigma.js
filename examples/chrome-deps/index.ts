@@ -7,7 +7,7 @@ import FA2Layout from "graphology-layout-forceatlas2/worker";
 import forceAtlas2 from "graphology-layout-forceatlas2";
 import * as Surreal from './Surreal';
 import { appendText, diffEditor } from "./Editors";
-import { state } from "./State";
+import { state, updateStateSelection } from "./State";
 import { downscaleConst, graph } from "./Graph";
 import { getHeatMapColor, renderer } from "./Renderer";
 import { graph2Object, graph2diffFull, object2Graph, tree2Graph } from "./FromToGraph";
@@ -280,7 +280,7 @@ function start(dataRaw, append = true) {
   function setSearchQuery(query: string, selection: number) {
     state.paths = [];
     if (!query) {
-      state.selected[selection] = { selected: undefined, suggest: undefined };
+      updateStateSelection({ selected: undefined, suggest: undefined }, selection);
       renderer.refresh();
       return;
     }
@@ -312,7 +312,7 @@ function start(dataRaw, append = true) {
       .filter(({label}) => pattern.test(label));
 
     if (suggestions.length === 1) {
-      state.selected[selection] = { selected: suggestions[0].id, suggest: undefined };
+      updateStateSelection({ selected: suggestions[0].id, suggest: undefined }, selection);
       const selectedOther = state.selected[(selection + 1) % 2]?.selected;
       if (selectedOther !== undefined) {
         assignPath(selectedOther, state.selected[selection].selected);
@@ -323,7 +323,7 @@ function start(dataRaw, append = true) {
         duration: 500,
       });
     } else {
-      state.selected[selection] = { selected: undefined, suggest: new Set(suggestions.map(({ id }) => id)) };
+      updateStateSelection({ selected: undefined, suggest: new Set(suggestions.map(({ id }) => id)) }, selection);
     }
 
     renderer.refresh();

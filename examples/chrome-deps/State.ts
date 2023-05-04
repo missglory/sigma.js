@@ -1,3 +1,5 @@
+import { appendText, nodeEditor } from "./Editors";
+import { graph } from "./Graph";
 
 type Selection = {
   selected?: string;
@@ -34,3 +36,14 @@ export const state: State = {
   pathIndex: 0,
   sizeMult: 1,
 };
+
+export const updateStateSelection = async (diff, selectionId) => {
+  // Object.assign(state, diff);
+  if (diff.hasOwnProperty("selected")) {
+    state.selected[selectionId] = diff;
+    // if (state.selected[selectionId].selected !== undefined) {
+    const attrs = graph.getNodeAttributes(state.selected[selectionId].selected);
+    appendText(JSON.stringify(attrs, null, 1), nodeEditor.getModel());
+    // }
+  }
+}

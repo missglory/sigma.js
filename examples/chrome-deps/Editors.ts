@@ -47,6 +47,15 @@ export const graphEditor = editor.create(document.getElementById("graphContainer
   tabSize: 1,
 });
 
+export const nodeEditor = editor.create(document.getElementById("nodeContainer"), {
+  language: "json",
+  automaticLayout: true,
+  renderValidationDecorations: "on",
+  fontSize: 9,
+  wordWrap: "on",
+  tabSize: 1,
+});
+
 document.getElementById("wwButton").onclick = (e) => {
   editorWW = !editorWW;
 
