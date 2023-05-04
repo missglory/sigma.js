@@ -85,9 +85,14 @@
 		}
 
 
-		#nameContainer #filenameContainer {
-			height: 11px;
-			margin-bottom: 3px;
+		#nameContainer {
+			height: 20px;
+			margin-bottom: 13px;
+		}
+
+		#fileNameContainer {
+			height: 20px;
+			margin-bottom: 13px;
 		}
 
 		#sortContainer {
@@ -100,6 +105,10 @@
 
 		#graphContainer {
 			height: 150px;
+		}
+
+		#nodeContainer {
+			height: 200px;
 		}
 
 		.editor {
@@ -203,7 +212,9 @@
 			<fieldset>
 				<button id="collapse6" class="collapseButton">▼</button>
 				<small>Graph</small>
-				<div id="filenameContainer" class="editor"></div>
+				<div id="fileNameContainer" class="editor"></div>
+				<button id="fileButton">Get file</button>
+				<!-- <input type="file" id="file-input"> -->
 				<div id="graphContainer" class="editor"></div>
 				<button id="graphAppendButton">Append</button>
 				<button id="graphSubtractButton">Subtract</button>
@@ -229,6 +240,11 @@
 				<n>Nodes size: </n>
 				<input type="number" id="sizeInput" maxLength="3" style="width:35px" value="10"></input>
 				<div id="sigma-container"></div>
+			</fieldset>
+			<fieldset>
+				<button id="collapse7" class="collapseButton">▼</button>
+				<small>Node attributes</small>
+				<div id="nodeContainer" class="editor"></div>
 			</fieldset>
 			<fieldset>
 				<button id="collapse3" class="collapseButton">▼</button>

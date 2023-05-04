@@ -56,6 +56,18 @@ export const nodeEditor = editor.create(document.getElementById("nodeContainer")
   tabSize: 1,
 });
 
+
+export const fileNameEditor = editor.create(document.getElementById("fileNameContainer"), {
+  language: "json",
+  automaticLayout: true,
+  renderValidationDecorations: "on",
+  fontSize: 9,
+  wordWrap: "on",
+  tabSize: 1,
+});
+
+fileNameEditor.getModel().setValue("computed_style_utils.cc");
+
 document.getElementById("wwButton").onclick = (e) => {
   editorWW = !editorWW;
 

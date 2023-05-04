@@ -1,4 +1,5 @@
 import { appendText, nodeEditor } from "./Editors";
+import { getTextBetweenPositions } from "./FilePiece";
 import { graph } from "./Graph";
 
 type Selection = {
@@ -43,6 +44,8 @@ export const updateStateSelection = async (diff, selectionId) => {
     state.selected[selectionId] = diff;
     // if (state.selected[selectionId].selected !== undefined) {
     const attrs = graph.getNodeAttributes(state.selected[selectionId].selected);
+    const loc = attrs.location;
+    graph.setNodeAttribute(state.selected[selectionId].selected, "code", getTextBetweenPositions(loc.line, loc.column, loc.endLine, loc.endColumn));
     appendText(JSON.stringify(attrs, null, 1), nodeEditor.getModel());
     // }
   }
