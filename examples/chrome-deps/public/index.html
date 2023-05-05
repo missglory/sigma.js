@@ -34,13 +34,27 @@
 			bottom: 100%;
 		}
 
+		#graphFieldset {
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: space-between;
+	  }
+
 		#sigma-container {
-			height: 1000px;
-			width: 98%;
+			height: 700px;
 			background: #666;
+			width: 49%;
+			display: inline;
 		}
 
-		#stopBtn {
+		#cppContainer {
+			height: 700px;
+			display: inline;
+			float: right;
+			width: 49%;
+		}
+
+	  #stopBtn {
 			/* position: absolute; */
 			/* top: 0; */
 			font-size: 20px;
@@ -239,7 +253,10 @@
 				<button type="button" id="fa2">Stop layout ⏸</button>
 				<n>Nodes size: </n>
 				<input type="number" id="sizeInput" maxLength="3" style="width:35px" value="10"></input>
-				<div id="sigma-container"></div>
+				<fieldset id="graphFieldset">
+						<div id="sigma-container"></div>
+						<div id="cppContainer" class="editor"></div>
+					</fieldset>
 			</fieldset>
 			<fieldset>
 				<button id="collapse7" class="collapseButton">▼</button>

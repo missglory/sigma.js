@@ -1,5 +1,5 @@
 import { appendText, nodeEditor } from "./Editors";
-import { fileText, getTextBetweenPositions } from "./FilePiece";
+import { fileText, getTextBetweenPositions } from "./LoadFile";
 import { graph } from "./Graph";
 
 type Selection = {

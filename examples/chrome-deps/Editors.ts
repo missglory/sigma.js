@@ -68,6 +68,15 @@ export const fileNameEditor = editor.create(document.getElementById("fileNameCon
 
 fileNameEditor.getModel().setValue("computed_style_utils.cc");
 
+export const cppEditor = editor.create(document.getElementById("cppContainer"), {
+  language: "cpp",
+  automaticLayout: true,
+  renderValidationDecorations: "on",
+  fontSize: 9,
+  wordWrap: "on",
+  tabSize: 2,
+});
+
 document.getElementById("wwButton").onclick = (e) => {
   editorWW = !editorWW;
 
