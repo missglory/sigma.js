@@ -9,20 +9,23 @@ import { graph2Object, graph2diffFull, object2Graph, tree2Graph } from "./Graph"
 import { searchInputs, setSearchQuery } from "./Search";
 import { diffEditor } from "./Editors";
 import { state } from "./State";
+import { fileButton } from "./LoadFile";
 
 
 
-Promise.all([fetch("./chrome_deps.json")])
-  .then((rs) =>
-    Promise.all(
-      rs.map((r) => {
-        return r.json();
-      }),
-    ),
-  )
-  .then(
-    Function.prototype.apply.bind(start, start),
-  );
+// Promise.all([fetch("./chrome_deps.json")])
+//   .then((rs) =>
+//     Promise.all(
+//       rs.map((r) => {
+//         return r.json();
+//       }),
+//     ),
+//   )
+//   .then(
+//     Function.prototype.apply.bind(start, start),
+//   );
+
+fileButton.dispatchEvent(new Event("click"));
 
 const searchSuggestions = document.getElementById("suggestions") as HTMLDataListElement;
 

@@ -39,17 +39,8 @@ export const state: State = {
 };
 
 export const updateStateSelection = async (diff, selectionId) => {
-  // Object.assign(state, diff);
+  state.selected[selectionId] = diff;
   if (diff["selected"] !== undefined) {
-    let event = null;
-    if (fileName !== fileNameEditor.getModel().getValue()) {
-      console.log("test")
-      event = new Event("click");
-      document.getElementById("fileButton").dispatchEvent(event);
-      // await new Promise(r => setTimeout(r, 100));
-    }
-    // if (state.selected[selectionId].selected !== undefined) {
-      state.selected[selectionId] = diff;
     const attrs = graph.getNodeAttributes(state.selected[selectionId].selected);
     delete attrs.code;
     const loc = attrs.location;

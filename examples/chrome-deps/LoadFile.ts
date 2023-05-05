@@ -91,7 +91,7 @@ async function getFileContentsFromEndpoint(endpointUrl, filePath) {
   return data.contents;
 }
 
-const fileButton = document.getElementById("fileButton")
+export const fileButton = document.getElementById("fileButton")
 
 fileButton.addEventListener('click', async () => {
   const file = fileNameEditor.getModel().getValue();
@@ -103,7 +103,7 @@ fileButton.addEventListener('click', async () => {
       fileName = file;
       const fileAST = await getFileContentsFromEndpoint('http://95.84.195.102:5000/ast_from_file', file);
       console.log(fileAST);
-      start(fileAST, false, true);
+      start(fileAST, true, true);
       console.log("file AST")
       fileText = fileContents;
       lines = fileText.split('\n');
