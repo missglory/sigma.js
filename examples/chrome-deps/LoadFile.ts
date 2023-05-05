@@ -1,7 +1,11 @@
+import { start } from ".";
 import { fileNameEditor } from "./Editors";
+import { tree2Graph } from "./FromToGraph";
+import { graph } from "./Graph";
 
-export let fileText = ''
+export let fileText = '';
 let lines = fileText.split('\n');
+export let fileName = '';
 export const getTextBetweenPositions = (startLine, startColumn, endLine, endColumn) => {
   // Split the file text into an array of lines
 
@@ -94,6 +98,17 @@ fileButton.addEventListener('click', async () => {
   console.log("get file: " + file)
   const fileContents = await getFileContentsFromEndpoint('http://95.84.195.102:5000/src', file);
   console.log(fileContents);
-  fileText = fileContents;
-  lines = fileText.split('\n');
+  if (fileContents) {
+    try {
+      fileName = file;
+      const fileAST = await getFileContentsFromEndpoint('http://95.84.195.102:5000/ast_from_file', file);
+      console.log(fileAST);
+      start(fileAST, false, true);
+      console.log("file AST")
+      fileText = fileContents;
+      lines = fileText.split('\n');
+    } catch (err) {
+      console.error(err);
+    }
+  }
 });

@@ -159,7 +159,7 @@ renderer.setSetting("nodeReducer", (node, data) => {
 
   if (state.hoveredNeighbors && !state.hoveredNeighbors.has(node) && state.hoveredNode !== node) {
     res.label = "";
-    res.color = "#877";
+    res.color = "#846464";
   }
 
   if (state.paths.length > state.pathIndex && state.paths[state.pathIndex].has(node)) {
@@ -179,7 +179,7 @@ renderer.setSetting("nodeReducer", (node, data) => {
   }
   if (state.selected[0].suggest && !state.selected[0].suggest.has(node)) {
     res.label = "";
-    res.color = "#877";
+    res.color = "#846464";
   }
 
   return res;

@@ -3,6 +3,7 @@ import chroma from "chroma-js";
 import { downscaleConst, graph } from "./Graph";
 import { appendText, graphEditor } from "./Editors";
 import { v4 as uuidv4 } from 'uuid';
+import { renderer } from "./Renderer";
 
 export const object2Graph = async (dataRaw, graph: graphology.DirectedGraph, append = true) => {
   Object.entries(dataRaw).forEach((rootNode, i) => {
@@ -21,8 +22,10 @@ const tree2GraphRecursion = (tree, graph, parentId = null) => {
 		{
 			x: cRoot[0],
 			y: cRoot[1],
+      size: 4,
 			...tree,
-			children: undefined
+			children: undefined,
+      label: tree.kind.replace("CursorKind.", ""),
 		}
 	);
 
@@ -37,9 +40,12 @@ const tree2GraphRecursion = (tree, graph, parentId = null) => {
   }
 }
 
-export const tree2Graph = async (tree, graph) => {
-  // const graph = new Graph();
+export const tree2Graph = async (tree, graph, refresh = false) => {
+  if (refresh) {
+    graph = new graphology.DirectedGraph();
+  }
   tree2GraphRecursion(tree, graph);
+  renderer.refresh();
   return graph;
 }
 
@@ -144,7 +150,6 @@ export const forEachLine = (line, rootNode, hierarchy, append) => {
 };
 
 const dropNodeF = (node, i, graph) => { graph.dropNode(node); }
-
 
 export const graph2Object = (graph: graphology.DirectedGraph) => {
   let res = {};

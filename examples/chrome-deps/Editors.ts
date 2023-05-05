@@ -73,8 +73,31 @@ export const cppEditor = editor.create(document.getElementById("cppContainer"), 
   automaticLayout: true,
   renderValidationDecorations: "on",
   fontSize: 9,
-  wordWrap: "on",
+  wordWrap: "off",
   tabSize: 2,
+  lineNumbers: "off"
+});
+
+cppEditor.onDidScrollChange((e) => {
+  cppLinesEditor.setScrollTop(e.scrollTop);
+});
+
+export const cppLinesEditor = editor.create(document.getElementById("cppLinesContainer"), {
+  fontSize: 9,
+  lineNumbers: 'off',
+  minimap: { enabled: false },
+  readOnly: true,
+  scrollbar: {
+    useShadows: false,
+    vertical: "hidden",
+  },
+  overviewRulerLanes: 0,
+  overviewRulerBorder: false,
+  hideCursorInOverviewRuler: true,
+});
+
+cppLinesEditor.onDidScrollChange((e) => {
+  cppEditor.setScrollTop(e.scrollTop);
 });
 
 document.getElementById("wwButton").onclick = (e) => {

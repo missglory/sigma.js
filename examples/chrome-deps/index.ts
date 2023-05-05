@@ -11,6 +11,7 @@ import { state, updateStateSelection } from "./State";
 import { downscaleConst, graph } from "./Graph";
 import { getHeatMapColor, renderer } from "./Renderer";
 import { graph2Object, graph2diffFull, object2Graph, tree2Graph } from "./FromToGraph";
+import { assignPath } from "./Paths";
 
 
 
@@ -31,7 +32,6 @@ export const searchInputs = [0, 1].map((v) => {
 });
 const searchSuggestions = document.getElementById("suggestions") as HTMLDataListElement;
 
-// let DELIMETER = ":";
 
 const layers = new Set([0]);
 
@@ -203,10 +203,11 @@ for (const el of document.getElementsByClassName("collapseButton")) {
 }
 
 
+Surreal.surrealConnect();
 
-function start(dataRaw, append = true) {
+export async function start(dataRaw, append = true, refresh = false) {
   // object2Graph(dataRaw, graph, append);
-  tree2Graph(dataRaw, graph);
+  tree2Graph(dataRaw, graph, refresh);
   graph2diffFull(graph);
 
   // ReachableCounts.reachableCounts.clear();
@@ -214,7 +215,6 @@ function start(dataRaw, append = true) {
   // ReachableCounts.assignReachableCounts(graph);
   // // .assignReachableCounts(graph);
   // ReachableCounts.reachableCounts2Editor(graph, sortEditor);
-  Surreal.surrealConnect();
 
   if (append) {
     layout?.kill();
@@ -232,50 +232,6 @@ function start(dataRaw, append = true) {
     .map((node) => `<option value="${graph.getNodeAttribute(node, "label")}"></option>`)
     .join("\n");
 
-  async function assignPath(node1, node2) {
-    const maxDepthInput = document.getElementById("maxDepthInput") as HTMLInputElement;
-    const v = parseInt(maxDepthInput.value)
-    state.paths = allSimplePaths(graph, node1, node2, { maxDepth: v }).map(
-      (path) => new Map(path.map((p, i, ar) => [p, i / ar.length])),
-    );
-    state.paths.sort((path1, path2) => (path1.size < path2.size ? -1 : path1.size === path2.size ? 0 : 1));
-    document.getElementById("pathsLabel").innerHTML = state.paths.length.toString() + " paths";
-    const pathsList = document.getElementById("pathList");
-    const pathIndex = document.getElementById("pathIndex") as HTMLInputElement;
-    const pathLeftButton = document.getElementById("pathLeftButton") as HTMLButtonElement;
-    pathLeftButton.onclick = (e) => {
-      const v = Math.max(0, parseInt(pathIndex.value) - 1);
-      pathIndex.value = v.toString();
-      pathIndex.dispatchEvent(new Event("input"));
-    };
-    const pathRightButton = document.getElementById("pathRightButton") as HTMLButtonElement;
-    pathRightButton.onclick = (e) => {
-      const v = Math.min(state.paths.length, parseInt(pathIndex.value) + 1);
-      pathIndex.value = v.toString();
-      pathIndex.dispatchEvent(new Event("input"));
-    };
-
-    pathIndex.oninput = (ev) => {
-      pathsList.replaceChildren();
-      const idx = parseInt((ev.target as HTMLInputElement).value) - 1;
-      if (state.paths.length > idx) {
-        state.paths[idx].forEach((percent, path) => {
-          const el = document.createElement("tt");
-          el.innerHTML = path;
-          el.style.borderColor = getHeatMapColor(percent);
-          el.style.borderStyle = "solid";
-          el.style.padding = "3px";
-          const divWrap = document.createElement("div");
-          divWrap.style.marginBottom = "8px";
-          divWrap.appendChild(el);
-          pathsList.appendChild(divWrap);
-        });
-        state.pathIndex = idx;
-      }
-      renderer.refresh();
-    };
-    pathIndex.dispatchEvent(new InputEvent("input"));
-  }
 
   function setSearchQuery(query: string, selection: number) {
     state.paths = [];
@@ -305,11 +261,11 @@ function start(dataRaw, append = true) {
       .map((n) => ({
         id: n,
         // label: "^" + n + "$",
-        label: n
+        label: graph.getNodeAttribute(n, "label"),
         // label: n
       }))
       // .filter(({ label }) => label.includes(query));
-      .filter(({label}) => pattern.test(label));
+      .filter((n) => pattern.test(n.label) || pattern.test(n.id));
 
     if (suggestions.length === 1) {
       updateStateSelection({ selected: suggestions[0].id, suggest: undefined }, selection);
