@@ -38,7 +38,7 @@
 			display: flex;
 			flex-wrap: wrap;
 			justify-content: space-between;
-	  }
+		}
 
 		#sigma-container {
 			height: 700px;
@@ -61,7 +61,7 @@
 			width: 7%;
 		}
 
-	  #stopBtn {
+		#stopBtn {
 			/* position: absolute; */
 			/* top: 0; */
 			font-size: 20px;
@@ -144,7 +144,7 @@
 		#search-input0 {
 			/* float: left; */
 			/* height: 100%; */
-			width: 85%;
+			width: 88%;
 			/* display: inline-block; */
 			float: left;
 		}
@@ -155,13 +155,13 @@
 			/* display: inline-block; */
 			/* float: right; */
 			/* height: 20px; */
-			width: 85%;
+			width: 88%;
 		}
 
 		.inlineEl {
 			display: inline;
 			float: right;
-			width: 10%;
+			width: 7%;
 			margin-left: 2px;
 			/* width: fit-content; */
 			/* align-content: center; */
@@ -233,7 +233,7 @@
 		}
 
 		.scroll-container::-webkit-scrollbar-corner {
-  		display: none;
+			display: none;
 		}
 
 		/* .scroll-container:hover {
@@ -282,19 +282,20 @@
 				<button id="graphSubtractButton">Subtract</button>
 				<button id="wwButton">Word wrap</button>
 			</fieldset>
-			<fieldset id="searchFieldset">
+			<fieldset>
 				<button id="collapse1" class="collapseButton">▼</button>
 				<small>Search</small>
-				<br/>
-				<div id="searchInputContainer0" class="search-input">
-					<div id="search-input0"></div>
-					<tt id="searchTT0" class="inlineEl">0</tt>
-				</div>
-				<button id="reroute" class="inlineEl"><b>⇆</b></button>
-				<div id="searchInputContainer1" class="search-input">
-					<div id="search-input1"></div>
-					<tt id="searchTT1" class="inlineEl">0</tt>
-				</div>
+				<fieldset id="searchFieldset">
+					<div id="searchInputContainer0" class="search-input">
+						<div id="search-input0"></div>
+						<tt id="searchTT0" class="inlineEl">0</tt>
+					</div>
+					<button id="reroute" class="inlineEl"><b>⇆</b></button>
+					<div id="searchInputContainer1" class="search-input">
+						<div id="search-input1"></div>
+						<tt id="searchTT1" class="inlineEl">0</tt>
+					</div>
+				</fieldset>
 			</fieldset>
 			<datalist id="suggestions"></datalist>
 			<fieldset>
@@ -305,10 +306,10 @@
 				<n>Nodes size: </n>
 				<input type="number" id="sizeInput" maxLength="3" style="width:35px" value="10"></input>
 				<fieldset id="graphFieldset">
-						<div id="sigma-container"></div>
-						<div id="cppLinesContainer" class="editor"></div>
-						<div id="cppContainer" class="editor"></div>
-					</fieldset>
+					<div id="sigma-container"></div>
+					<div id="cppLinesContainer" class="editor"></div>
+					<div id="cppContainer" class="editor"></div>
+				</fieldset>
 			</fieldset>
 			<fieldset>
 				<button id="collapse7" class="collapseButton">▼</button>
