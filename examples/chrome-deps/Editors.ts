@@ -1,69 +1,41 @@
 import { editor } from "monaco-editor";
 
-export const diffEditor = editor.create(document.getElementById("diffContainer"), {
+const jsonParams: editor.IStandaloneEditorConstructionOptions = {
   language: "json",
   automaticLayout: true,
-  // renderValidationDecorations: "on"
+  renderValidationDecorations: "on",
   fontSize: 9,
   wordWrap: "on",
   tabSize: 1,
+};
+
+export const diffEditor = editor.create(document.getElementById("diffContainer"), {
+  ...jsonParams,
 });
 export let editorWW = true;
 
 export const nameEditor = editor.create(document.getElementById("nameContainer"), {
-  language: "json",
-  automaticLayout: true,
-  // renderValidationDecorations: "on"
-  fontSize: 9,
-  wordWrap: "on",
-  tabSize: 1,
+  ...jsonParams,
 });
 
 export const sortEditor = editor.create(document.getElementById("sortContainer"), {
-  language: "json",
-  automaticLayout: true,
-  formatOnType: true,
-  // renderValidationDecorations: "on"
-  fontSize: 9,
-  wordWrap: "on",
-  tabSize: 1,
+  ...jsonParams,
 });
 
 export const reachableEditor = editor.create(document.getElementById("reachableContainer"), {
-  language: "json",
-  automaticLayout: true,
-  renderValidationDecorations: "on",
-  fontSize: 9,
-  wordWrap: "on",
-  tabSize: 1,
+  ...jsonParams,
 });
 
 export const graphEditor = editor.create(document.getElementById("graphContainer"), {
-  language: "json",
-  automaticLayout: true,
-  renderValidationDecorations: "on",
-  fontSize: 9,
-  wordWrap: "on",
-  tabSize: 1,
+  ...jsonParams,
 });
 
 export const nodeEditor = editor.create(document.getElementById("nodeContainer"), {
-  language: "json",
-  automaticLayout: true,
-  renderValidationDecorations: "on",
-  fontSize: 9,
-  wordWrap: "on",
-  tabSize: 1,
+  ...jsonParams,
 });
 
-
 export const fileNameEditor = editor.create(document.getElementById("fileNameContainer"), {
-  language: "json",
-  automaticLayout: true,
-  renderValidationDecorations: "on",
-  fontSize: 9,
-  wordWrap: "on",
-  tabSize: 1,
+  ...jsonParams,
 });
 
 fileNameEditor.getModel().setValue("computed_style_utils.cc");
@@ -75,16 +47,16 @@ export const cppEditor = editor.create(document.getElementById("cppContainer"), 
   fontSize: 9,
   wordWrap: "off",
   tabSize: 2,
-  lineNumbers: "off"
+  lineNumbers: "off",
 });
 
 cppEditor.onDidScrollChange((e) => {
   cppLinesEditor.setScrollTop(e.scrollTop);
 });
 
-export const cppLinesEditor = editor.create(document.getElementById("cppLinesContainer"), {
+export const plainParams: editor.IStandaloneEditorConstructionOptions = {
   fontSize: 9,
-  lineNumbers: 'off',
+  lineNumbers: "off",
   minimap: { enabled: false },
   readOnly: true,
   scrollbar: {
@@ -94,6 +66,10 @@ export const cppLinesEditor = editor.create(document.getElementById("cppLinesCon
   overviewRulerLanes: 0,
   overviewRulerBorder: false,
   hideCursorInOverviewRuler: true,
+};
+
+export const cppLinesEditor = editor.create(document.getElementById("cppLinesContainer"), {
+  ...plainParams,
 });
 
 cppLinesEditor.onDidScrollChange((e) => {

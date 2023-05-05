@@ -1,6 +1,6 @@
 import { start } from ".";
 import { fileNameEditor } from "./Editors";
-import { tree2Graph } from "./FromToGraph";
+import { tree2Graph } from "./Graph";
 import { graph } from "./Graph";
 
 export let fileText = '';

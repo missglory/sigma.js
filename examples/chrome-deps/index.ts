@@ -1,17 +1,14 @@
-import * as graphology from "graphology";
-import { allSimplePaths } from "graphology-simple-path";
-import { Coordinates, EdgeDisplayData, NodeDisplayData } from "sigma/types";
 import chroma from "chroma-js";
 
 import FA2Layout from "graphology-layout-forceatlas2/worker";
 import forceAtlas2 from "graphology-layout-forceatlas2";
 import * as Surreal from './Surreal';
-import { appendText, diffEditor } from "./Editors";
-import { state, updateStateSelection } from "./State";
-import { downscaleConst, graph } from "./Graph";
-import { getHeatMapColor, renderer } from "./Renderer";
-import { graph2Object, graph2diffFull, object2Graph, tree2Graph } from "./FromToGraph";
-import { assignPath } from "./Paths";
+import { graph } from "./Graph";
+import { downscaleConst, getHeatMapColor, renderer } from "./Renderer";
+import { graph2Object, graph2diffFull, object2Graph, tree2Graph } from "./Graph";
+import { searchInputs, setSearchQuery } from "./Search";
+import { diffEditor } from "./Editors";
+import { state } from "./State";
 
 
 
@@ -27,9 +24,6 @@ Promise.all([fetch("./chrome_deps.json")])
     Function.prototype.apply.bind(start, start),
   );
 
-export const searchInputs = [0, 1].map((v) => {
-  return document.getElementById("search-input" + v.toString()) as HTMLInputElement;
-});
 const searchSuggestions = document.getElementById("suggestions") as HTMLDataListElement;
 
 
@@ -140,10 +134,10 @@ document.getElementById("resetBtn").onclick = (e) => {
 };
 
 document.getElementById("reroute").onclick = (ev) => {
-  const vals = searchInputs.map((input) => input.value);
+  const vals = searchInputs.map((input) => input.getModel().getValue());
   searchInputs.forEach((input, index) => {
-    input.value = vals[(index + 1) % vals.length];
-    input.dispatchEvent(new Event("input"));
+    input.getModel().setValue(vals[(index + 1) % vals.length]);
+    // input.dispatchEvent(new Event("input"));
   });
 };
 
@@ -233,97 +227,42 @@ export async function start(dataRaw, append = true, refresh = false) {
     .join("\n");
 
 
-  function setSearchQuery(query: string, selection: number) {
-    state.paths = [];
-    if (!query) {
-      updateStateSelection({ selected: undefined, suggest: undefined }, selection);
-      renderer.refresh();
-      return;
-    }
+  // const scaryFunction = (node) => {
+  //   const boundarySet = new Set([node]);
+  //   const layers = [new Set(), new Set(), new Set()];
+  //   let inSet = new Set([node]);
+  //   let outSet = new Set();
 
-    if (query[0] === '"') {
-      query = "^" + query.substring(1);
-    }
+  //   for (let i = 0; i < 3; i++) {
+  //     inSet.forEach((val) => {
+  //       graph.forEachInNeighbor(val, (neighbor) => {
+  //         if (boundarySet.has(neighbor)) {
+  //         } else {
+  //           boundarySet.add(neighbor);
+  //           outSet.add(neighbor);
+  //         }
+  //       });
+  //     });
+  //     inSet = new Set(outSet);
+  //     layers[i] = outSet;
+  //     outSet = new Set();
+  //   }
+  //   return layers;
+  // };
 
-    if (query.at(-1) === '"') {
-      query = query.substring(0, query.length - 1) + "$";
-    }
-
-    state.searchQuery[selection] = query;
-    if (searchInputs[selection].value !== query) {
-      searchInputs[selection].value = query;
-    }
-
-    const pattern = new RegExp(query);
-
-    const suggestions = graph
-      .nodes()
-      .map((n) => ({
-        id: n,
-        // label: "^" + n + "$",
-        label: graph.getNodeAttribute(n, "label"),
-        // label: n
-      }))
-      // .filter(({ label }) => label.includes(query));
-      .filter((n) => pattern.test(n.label) || pattern.test(n.id));
-
-    if (suggestions.length === 1) {
-      updateStateSelection({ selected: suggestions[0].id, suggest: undefined }, selection);
-      const selectedOther = state.selected[(selection + 1) % 2]?.selected;
-      if (selectedOther !== undefined) {
-        assignPath(selectedOther, state.selected[selection].selected);
-      }
-
-      const nodePosition = renderer.getNodeDisplayData(state.selected[selection].selected) as Coordinates;
-      renderer.getCamera().animate(nodePosition, {
-        duration: 500,
-      });
-    } else {
-      updateStateSelection({ selected: undefined, suggest: new Set(suggestions.map(({ id }) => id)) }, selection);
-    }
-
-    renderer.refresh();
-  }
-
-  searchInputs.forEach((searchInput, index) => {
-    searchInput.addEventListener("input", (e) => {
-      setSearchQuery(searchInput.value || "", index);
-      const tt = document.getElementById("searchTT" + index.toString());
-      const clrStr = state.selected[index].selected !== undefined ? "rgb(128,255,220)" : "#fff";
-      (e.target as HTMLInputElement).style.color = clrStr;
-      (e.target as HTMLInputElement).style.borderColor = clrStr;
-      tt.style.color = clrStr;
-      tt.innerHTML = (
-        state.selected[index].suggest !== undefined
-          ? state.selected[index].suggest.size
-          : state.selected[index].selected !== undefined
-          ? 1
-          : 0
-      ).toString();
-    });
+searchInputs.forEach((searchInput, index) => {
+  searchInput.onDidChangeModelContent((e) => {
+    setSearchQuery(searchInput.getModel().getValue() || "", index);
+    const tt = document.getElementById("searchTT" + index.toString());
+    const clrStr = state.selected[index].selected !== undefined ? "rgb(128,255,220)" : "#fff";
+    tt.style.color = clrStr;
+    tt.innerHTML = (
+      state.selected[index].suggest !== undefined
+        ? state.selected[index].suggest.size
+        : state.selected[index].selected !== undefined
+        ? 1
+        : 0
+    ).toString();
   });
-
-  const scaryFunction = (node) => {
-    const boundarySet = new Set([node]);
-    const layers = [new Set(), new Set(), new Set()];
-    let inSet = new Set([node]);
-    let outSet = new Set();
-
-    for (let i = 0; i < 3; i++) {
-      inSet.forEach((val) => {
-        graph.forEachInNeighbor(val, (neighbor) => {
-          if (boundarySet.has(neighbor)) {
-          } else {
-            boundarySet.add(neighbor);
-            outSet.add(neighbor);
-          }
-        });
-      });
-      inSet = new Set(outSet);
-      layers[i] = outSet;
-      outSet = new Set();
-    }
-    return layers;
-  };
-
+});
 }

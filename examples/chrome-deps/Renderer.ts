@@ -3,7 +3,7 @@ import { graph } from "./Graph";
 import EdgesFastProgram from "sigma/rendering/webgl/programs/edge.fast";
 import { state } from "./State";
 import { EdgeDisplayData, NodeDisplayData } from "sigma/types";
-import { searchInputs } from ".";
+import { searchInputs } from "./Search";
 
 const container = document.getElementById("sigma-container") as HTMLElement;
 export const renderer = new Sigma(graph, container, {
@@ -15,6 +15,7 @@ export const renderer = new Sigma(graph, container, {
 });
 
 let scaleMult = 10;
+export const downscaleConst = 1;
 
 document.getElementById("inn").onclick = (ev) => {
   const val = (ev.target as HTMLInputElement).checked;
@@ -53,10 +54,11 @@ const setupRenderer = () => {
   });
 
   const clickFunc = (event, index) => {
-    searchInputs[index].select();
+    // searchInputs[index].select();
     const v = "^" + event.node + "$";
-    searchInputs[index].value = v;
-    searchInputs[index].dispatchEvent(new Event("input"));
+    // searchInputs[index].value = v;
+    // searchInputs[index].dispatchEvent(new Event("input"));
+    searchInputs[index].getModel().setValue(v);
   };
   renderer.on("clickNode", (e) => {
     // if (searchInputs)

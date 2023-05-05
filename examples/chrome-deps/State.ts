@@ -1,6 +1,6 @@
+import { graph } from "./Graph";
 import { appendText, fileNameEditor, nodeEditor, cppEditor, cppLinesEditor } from "./Editors";
 import { fileName, fileText, getTextBetweenPositions } from "./LoadFile";
-import { graph } from "./Graph";
 import { sveltePreprocess } from "svelte-preprocess/dist/autoProcess";
 
 type Selection = {
@@ -40,7 +40,7 @@ export const state: State = {
 
 export const updateStateSelection = async (diff, selectionId) => {
   // Object.assign(state, diff);
-  if (diff.hasOwnProperty("selected")) {
+  if (diff["selected"] !== undefined) {
     let event = null;
     if (fileName !== fileNameEditor.getModel().getValue()) {
       console.log("test")

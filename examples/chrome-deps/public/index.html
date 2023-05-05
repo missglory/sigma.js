@@ -105,7 +105,6 @@
 			margin-bottom: 3px;
 		}
 
-
 		#nameContainer {
 			height: 20px;
 			margin-bottom: 13px;
@@ -130,6 +129,48 @@
 
 		#nodeContainer {
 			height: 200px;
+		}
+
+		.search-input {
+			height: 40px;
+			width: 40%;
+			/* float: left; */
+			/* display: inline; */
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: space-between;
+		}
+
+		#search-input0 {
+			/* float: left; */
+			/* height: 100%; */
+			width: 85%;
+			/* display: inline-block; */
+			float: left;
+		}
+
+		#search-input1 {
+			/* float: right; */
+			/* display:flex; */
+			/* display: inline-block; */
+			/* float: right; */
+			/* height: 20px; */
+			width: 85%;
+		}
+
+		.inlineEl {
+			display: inline;
+			float: right;
+			width: 10%;
+			margin-left: 2px;
+			/* width: fit-content; */
+			/* align-content: center; */
+		}
+
+		#searchFieldset {
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: space-between;
 		}
 
 		.editor {
@@ -241,16 +282,19 @@
 				<button id="graphSubtractButton">Subtract</button>
 				<button id="wwButton">Word wrap</button>
 			</fieldset>
-			<fieldset>
+			<fieldset id="searchFieldset">
 				<button id="collapse1" class="collapseButton">▼</button>
-				<br />
-				<input type="search" id="search-input0" list="suggestions0" placeholder="Try searching for a node..." />
-				<tt id="searchTT0">0</tt>
-				<br />
-				<button id="reroute"><b>▼▲</b></button>
-				<br />
-				<input type="search" id="search-input1" list="suggestions1" placeholder="Try searching for a node..." />
-				<tt id="searchTT1">0</tt>
+				<small>Search</small>
+				<br/>
+				<div id="searchInputContainer0" class="search-input">
+					<div id="search-input0"></div>
+					<tt id="searchTT0" class="inlineEl">0</tt>
+				</div>
+				<button id="reroute" class="inlineEl"><b>⇆</b></button>
+				<div id="searchInputContainer1" class="search-input">
+					<div id="search-input1"></div>
+					<tt id="searchTT1" class="inlineEl">0</tt>
+				</div>
 			</fieldset>
 			<datalist id="suggestions"></datalist>
 			<fieldset>
