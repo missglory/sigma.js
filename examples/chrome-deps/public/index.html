@@ -36,26 +36,42 @@
 
 		#graphFieldset {
 			display: flex;
-			flex-wrap: wrap;
-			justify-content: space-between;
+			flex-wrap: nowrap;
+			justify-content: space-around;
+			align-items: center;
+			box-sizing: border-box;
 		}
 
 		#sigma-container {
-			height: 700px;
+			height: 300px;
 			background: #666;
 			width: 46%;
-			display: inline;
+			/* display: inline; */
 		}
 
 		#cppContainer {
-			height: 700px;
-			display: inline;
-			float: right;
+			height: 300px;
+			/* display: inline; */
+			/* float: right; */
 			width: 47%;
+			/* box-sizing: border-box; */
 		}
 
+		@media (max-aspect-ratio: 1/1) {
+			#graphFieldset {
+				/* flex-direction: column; */
+			}
+
+			#cppContainer #sigma-container {
+				width: 90%;
+				height: 350px;
+			}
+		}
+
+		@media (max-width: 600px) {}
+
 		#cppLinesContainer {
-			height: 700px;
+			height: 300px;
 			display: inline;
 			float: right;
 			width: 7%;
@@ -172,6 +188,18 @@
 			flex-wrap: wrap;
 			justify-content: space-between;
 		}
+
+		@media (max-aspect-ratio: 1/1) {
+			#searchFieldset {
+				flex-direction: column;
+			}
+
+			#cppContainer #sigma-container {
+				width: 90%;
+				height: 350px;
+			}
+		}
+
 
 		.editor {
 			width: 97%;
