@@ -215,13 +215,62 @@ export async function start(dataRaw, append = true, refresh = false) {
 
   if (append) {
     layout?.kill();
-    const sensibleSettings = forceAtlas2.inferSettings(graph);
+    const v = parseFloat(document.getElementById("layoutInput")["value"]);
+    const sensibleSettings = Object.assign(forceAtlas2.inferSettings(graph),
+      // { gravity: 0.1 }
+      { gravity: v ?? 0.1 }
+    );
     layout = new FA2Layout(graph, {
       settings: sensibleSettings,
     });
     layout.start();
   }
   fa2Button.onclick = toggleFA2Layout;
+
+
+  document.getElementById("layoutInput").oninput = (e) => {
+    try {
+      const v = parseFloat((e.target as HTMLInputElement).value);
+      const sensibleSettings = Object.assign(forceAtlas2.inferSettings(graph),
+        // { gravity: 0.1 }
+        { gravity: v ?? 0.1 }
+      );
+      layout?.kill()
+      layout = new FA2Layout(graph, {
+        settings: sensibleSettings
+      });
+      // if (v == 0) {
+      //   return;
+      // }
+      // scaleMult = v;
+      // renderer.refresh();
+      // if (state.
+      layout.start();
+      renderer.refresh();
+    } catch (e) { }
+  };
+
+  document.getElementById("inferInput").oninput = (e) => {
+    try {
+
+      const v = Math.max(0, parseInt((e.target as HTMLInputElement).value === "" ? "0" : (e.target as HTMLInputElement).value) ?? 0);
+      const inferred = forceAtlas2.inferSettings(v);
+      const isRunning = layout.isRunning();
+      layout?.kill()
+      layout = new FA2Layout(graph, {
+        settings: inferred
+      });
+      // if (v == 0) {
+      //   return;
+      // }
+      // scaleMult = v;
+      // renderer.refresh();
+      // if (state.
+      if (isRunning) { layout.start(); }
+      renderer.refresh();
+    } catch (e) { }
+
+  };
 
   // Feed the datalist autocomplete values:
   searchSuggestions.innerHTML = graph
@@ -253,19 +302,19 @@ export async function start(dataRaw, append = true, refresh = false) {
   //   return layers;
   // };
 
-searchInputs.forEach((searchInput, index) => {
-  searchInput.onDidChangeModelContent((e) => {
-    setSearchQuery(searchInput.getModel().getValue() || "", index);
-    const tt = document.getElementById("searchTT" + index.toString());
-    const clrStr = state.selected[index].selected !== undefined ? "rgb(128,255,220)" : "#fff";
-    tt.style.color = clrStr;
-    tt.innerHTML = (
-      state.selected[index].suggest !== undefined
-        ? state.selected[index].suggest.size
-        : state.selected[index].selected !== undefined
-        ? 1
-        : 0
-    ).toString();
+  searchInputs.forEach((searchInput, index) => {
+    searchInput.onDidChangeModelContent((e) => {
+      setSearchQuery(searchInput.getModel().getValue() || "", index);
+      const tt = document.getElementById("searchTT" + index.toString());
+      const clrStr = state.selected[index].selected !== undefined ? "rgb(128,255,220)" : "#fff";
+      tt.style.color = clrStr;
+      tt.innerHTML = (
+        state.selected[index].suggest !== undefined
+          ? state.selected[index].suggest.size
+          : state.selected[index].selected !== undefined
+            ? 1
+            : 0
+      ).toString();
+    });
   });
-});
 }

@@ -300,17 +300,6 @@
 				<button id="reachableInOutButton">Out</button>
 			</fieldset>
 			<fieldset>
-				<button id="collapse6" class="collapseButton">▼</button>
-				<small>Graph</small>
-				<div id="fileNameContainer" class="editor"></div>
-				<button id="fileButton">Get file</button>
-				<!-- <input type="file" id="file-input"> -->
-				<div id="graphContainer" class="editor"></div>
-				<button id="graphAppendButton">Append</button>
-				<button id="graphSubtractButton">Subtract</button>
-				<button id="wwButton">Word wrap</button>
-			</fieldset>
-			<fieldset>
 				<button id="collapse1" class="collapseButton">▼</button>
 				<small>Search</small>
 				<fieldset id="searchFieldset">
@@ -325,12 +314,26 @@
 					</div>
 				</fieldset>
 			</fieldset>
-			<datalist id="suggestions"></datalist>
+			<fieldset>
+				<button id="collapse6" class="collapseButton">▼</button>
+				<small>Graph</small>
+				<div id="fileNameContainer" class="editor"></div>
+				<button id="fileButton">Get file</button>
+				<!-- <input type="file" id="file-input"> -->
+				<div id="graphContainer" class="editor"></div>
+				<button id="graphAppendButton">Append</button>
+				<button id="graphSubtractButton">Subtract</button>
+				<button id="wwButton">Word wrap</button>
+			</fieldset>
 			<fieldset>
 				<button id="collapse2" class="collapseButton">▼</button>
 				<small>Render</small>
 				<button type="submit" id="resetBtn">Reset graph</button>
 				<button type="button" id="fa2">Stop layout ⏸</button>
+				<small>Gravity: </small>
+				<input type="number" id="layoutInput" maxLength="4" style="width:35px" value="10"></input>
+				<small>Infer: </small>
+				<input type="number" id="inferInput" maxLength="4" style="width:35px" value="10"></input>
 				<n>Nodes size: </n>
 				<input type="number" id="sizeInput" maxLength="3" style="width:35px" value="10"></input>
 				<fieldset id="graphFieldset">
@@ -339,6 +342,7 @@
 					<div id="cppContainer" class="editor"></div>
 				</fieldset>
 			</fieldset>
+			<datalist id="suggestions"></datalist>
 			<fieldset>
 				<button id="collapse7" class="collapseButton">▼</button>
 				<small>Node attributes</small>
