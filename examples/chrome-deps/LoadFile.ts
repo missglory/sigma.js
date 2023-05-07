@@ -96,12 +96,12 @@ export const fileButton = document.getElementById("fileButton")
 fileButton.addEventListener('click', async () => {
   const file = fileNameEditor.getModel().getValue();
   console.log("get file: " + file)
-  const fileContents = await getFileContentsFromEndpoint('http://95.84.195.102:5000/src', file);
+  const fileContents = await getFileContentsFromEndpoint('http://localhost:5000/src', file);
   console.log(fileContents);
   if (fileContents) {
     try {
       fileName = file;
-      const fileAST = await getFileContentsFromEndpoint('http://95.84.195.102:5000/ast_from_file', file);
+      const fileAST = await getFileContentsFromEndpoint('http://localhost:5000/ast_from_file', file);
       console.log(fileAST);
       start(fileAST, true, true);
       console.log("file AST")

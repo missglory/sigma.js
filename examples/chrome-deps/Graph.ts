@@ -13,17 +13,23 @@ export const object2Graph = async (dataRaw, graph: graphology.DirectedGraph, app
   document.getElementById("nEdges").innerHTML = graph.edges().length.toString();
 };
 
-const tree2GraphRecursion = (tree, graph, parentId = null) => {
-  // Add the current node to the graph
-  // const nodeId = tree.id;
+function polar2Cartesian(angle, distance) {
+  var radians = (angle * Math.PI * 2);
+  return { x: distance * Math.cos(radians), y:  distance * Math.sin(radians) };
+}
+
+
+let _normalize = 0;
+const tree2GraphRecursion = (tree, graph, parentId = null, lvl = 0) => {
   const nodeId = uuidv4();
-  const cRoot = chroma.random()._rgb;
+  const angle = (tree.location.endLine + tree.location.line) / (2 * _normalize);
+  const distance = lvl * 100;
+  const coord = polar2Cartesian(angle, distance);
   graph.addNode(
 		nodeId,
 		{
-			x: cRoot[0],
-			y: cRoot[1],
-      size: 4,
+      ...coord,
+			size: 4,
 			...tree,
 			children: undefined,
       label: tree.kind.replace("CursorKind.", ""),
@@ -37,13 +43,14 @@ const tree2GraphRecursion = (tree, graph, parentId = null) => {
 
   // If the current node has children, recursively process them
   if (Array.isArray(tree.children)) {
-    tree.children.forEach(child => tree2GraphRecursion(child, graph, nodeId));
+    tree.children.forEach(child => tree2GraphRecursion(child, graph, nodeId, lvl + 1));
   }
 }
 
 export const tree2Graph = async (tree, graph, refresh = false) => {
   if (refresh) {
     graph.clear();
+    _normalize = tree.location.endLine - tree.location.line;
   }
   tree2GraphRecursion(tree, graph);
   renderer.refresh();
