@@ -214,16 +214,18 @@ export async function start(dataRaw, append = true, refresh = false) {
   // ReachableCounts.reachableCounts2Editor(graph, sortEditor);
 
   if (append) {
+    const isRunning = layout?.isRunning() ?? true;
     layout?.kill();
     const v = parseFloat(document.getElementById("layoutInput")["value"]);
     const sensibleSettings = Object.assign(forceAtlas2.inferSettings(graph),
       // { gravity: 0.1 }
       { gravity: v ?? 0.1 }
+      // {}
     );
     layout = new FA2Layout(graph, {
       settings: sensibleSettings,
     });
-    layout.start();
+    if (isRunning) { layout.start(); }
   }
   fa2Button.onclick = toggleFA2Layout;
 
@@ -234,6 +236,7 @@ export async function start(dataRaw, append = true, refresh = false) {
       const sensibleSettings = Object.assign(forceAtlas2.inferSettings(graph),
         // { gravity: 0.1 }
         { gravity: v ?? 0.1 }
+        // {}
       );
       layout?.kill()
       layout = new FA2Layout(graph, {

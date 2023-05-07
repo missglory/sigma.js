@@ -42,17 +42,18 @@ export const updateStateSelection = async (diff, selectionId) => {
   state.selected[selectionId] = diff;
   if (diff["selected"] !== undefined) {
     const attrs = graph.getNodeAttributes(state.selected[selectionId].selected);
-    delete attrs.code;
+    // delete attrs.code;
     const loc = attrs.location;
-    graph.setNodeAttribute(state.selected[selectionId].selected, "code", getTextBetweenPositions(loc.line, loc.column, loc.endLine, loc.endColumn));
+    // graph.setNodeAttribute(state.selected[selectionId].selected, "code", );
+    const codeAndLines = getTextBetweenPositions(loc.line, loc.column, loc.endLine, loc.endColumn);
     appendText(JSON.stringify(attrs, null, 1), nodeEditor.getModel());
     // }
-    let codeRaw = JSON.stringify(attrs.code.text).replaceAll("\\n", "\n");
-    if (codeRaw.length > 3) {
-      codeRaw = codeRaw.substring(1, codeRaw.length - 1);
-    }
+    let codeRaw = codeAndLines.text;
+    // if (codeRaw.length > 3) {
+    //   codeRaw = codeRaw.substring(1, codeRaw.length - 1);
+    // }
     appendText(codeRaw, cppEditor.getModel());
-    appendText(attrs.code.lineNumbers
+    appendText(codeAndLines.lineNumbers
       .replaceAll("'", "")
       .replaceAll(",", "\n"),
       cppLinesEditor.getModel());

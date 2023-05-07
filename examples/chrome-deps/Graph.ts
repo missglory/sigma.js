@@ -20,7 +20,9 @@ function polar2Cartesian(angle, distance) {
 
 
 let _normalize = 0;
-const tree2GraphRecursion = (tree, graph, parentId = null, lvl = 0) => {
+
+const tree2GraphRecursion = (tree, graph, parentId = null, lvl) => {
+  // if (lvl > 2) { return; }
   const nodeId = uuidv4();
   const angle = (tree.location.endLine + tree.location.line) / (2 * _normalize);
   const distance = lvl * 100;
@@ -29,7 +31,7 @@ const tree2GraphRecursion = (tree, graph, parentId = null, lvl = 0) => {
 		nodeId,
 		{
       ...coord,
-			size: 4,
+			size: (Math.pow(tree.location.endLine - tree.location.line + 1, 0.15)) + 0.5,
 			...tree,
 			children: undefined,
       label: tree.kind.replace("CursorKind.", ""),
@@ -52,7 +54,7 @@ export const tree2Graph = async (tree, graph, refresh = false) => {
     graph.clear();
     _normalize = tree.location.endLine - tree.location.line;
   }
-  tree2GraphRecursion(tree, graph);
+  tree2GraphRecursion(tree, graph, null, 0);
   renderer.refresh();
   return graph;
 }
