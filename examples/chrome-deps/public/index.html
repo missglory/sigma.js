@@ -15,7 +15,7 @@
 			font-family: sans-serif;
 			background: #000;
 			font-size: 13;
-			overflow: hidden;
+			/* overflow: hidden; */
 		}
 
 		main {
@@ -37,16 +37,46 @@
 		#graphFieldset {
 			display: flex;
 			flex-wrap: nowrap;
-			justify-content: space-around;
-			align-items: center;
+			/* justify-content: space-around; */
+			/* align-items: center; */
 			box-sizing: border-box;
+			white-space: nowrap;
+		}
+
+		#graphWrapper {
+			overflow-x: scroll;
 		}
 
 		#sigma-container {
 			height: 300px;
 			background: #666;
 			width: 46%;
-			/* display: inline; */
+			min-width: 300px;
+			display: inline-block;
+		}
+
+		#plot {
+			height: 300px;
+			background: #666;
+			width: 40%;
+			/* display: none; */
+			display: inline-block;
+			min-width: 200px;
+		}
+
+		#fieldsContainer {
+			display: flex;
+			flex-wrap: nowrap;
+			/* justify-content: space-around; */
+			/* align-items: center; */
+			box-sizing: border-box;
+			overflow-x: scroll;
+			white-space: nowrap;
+		}
+
+		#graphInterface {
+			width: 60%;
+			display: inline-block;
 		}
 
 		#cppContainer {
@@ -58,13 +88,20 @@
 		}
 
 		@media (max-aspect-ratio: 1/1) {
-			#graphFieldset {
-				/* flex-direction: column; */
+			/* #graphFieldset { */
+			/* flex-direction: column; */
+			/* } */
+
+			#cppContainer {
+				/* width: 90%; */
+				width: 300px;
+				height: 300px;
 			}
 
-			#cppContainer #sigma-container {
-				width: 90%;
-				height: 350px;
+			#sigma-container {
+				width: 300px;
+				height: 300px;
+
 			}
 		}
 
@@ -95,7 +132,7 @@
 
 		* {
 			color: white;
-			border-radius: 8px;
+			border-radius: 5px;
 			background: rgba(0, 0, 0, 0);
 			border-color: white;
 		}
@@ -131,6 +168,11 @@
 			margin-bottom: 13px;
 		}
 
+		#regexContainer {
+			height: 20px;
+			margin-bottom: 13px;
+		}
+
 		#sortContainer {
 			height: 500px;
 		}
@@ -155,6 +197,7 @@
 			display: flex;
 			flex-wrap: wrap;
 			justify-content: space-between;
+			/* flex: 1; */
 		}
 
 		#search-input0 {
@@ -271,8 +314,8 @@
 	<main>
 		<!-- <div id="sigma-container"></div> -->
 		<div id="interface" class="scroll-container">
+			<button id="collapse0" class="collapseButton">▼</button>
 			<fieldset>
-				<button id="collapse0" class="collapseButton">▼</button>
 				<small>Edges: <b id="nEdges">0</b></small>
 				<div id="nameContainer" class="editor"></div>
 				<div id="diffContainer" class="editor"></div>
@@ -314,18 +357,28 @@
 					</div>
 				</fieldset>
 			</fieldset>
-			<fieldset>
-				<button id="collapse6" class="collapseButton">▼</button>
-				<small>Graph</small>
-				<div id="fileNameContainer" class="editor"></div>
-				<button id="fileButton">Get file</button>
-				<!-- <input type="file" id="file-input"> -->
-				<div id="graphContainer" class="editor"></div>
-				<button id="graphAppendButton">Append</button>
-				<button id="graphSubtractButton">Subtract</button>
-				<button id="wwButton">Word wrap</button>
+			<fieldset id="fieldsContainer">
+				<fieldset id="graphInterface">
+					<button id="collapse6" class="collapseButton">▼</button>
+					<small>Graph</small>
+					<div id="fileNameContainer" class="editor"></div>
+					<div id="regexContainer" class="editor"></div>
+					<button id="fileButton">Get AST</button>
+					<button id="plotButton">Get histogram</button>
+					<small>Order by: </small>
+					<select id="selectHistOrder" style="background-color: #1e1e1e;">
+						<option value="count">Count</option>
+						<option value="locale">Locale</option>
+					</select>
+					<!-- <input type="file" id="file-input"> -->
+					<div id="graphContainer" class="editor"></div>
+					<button id="graphAppendButton">Append</button>
+					<button id="graphSubtractButton">Subtract</button>
+					<button id="wwButton">Word wrap</button>
+				</fieldset>
+				<div id="plot"></div>
 			</fieldset>
-			<fieldset>
+			<fieldset id="graphWrapper">
 				<button id="collapse2" class="collapseButton">▼</button>
 				<small>Render</small>
 				<button type="submit" id="resetBtn">Reset graph</button>

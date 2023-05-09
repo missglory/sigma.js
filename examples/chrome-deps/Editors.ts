@@ -1,13 +1,72 @@
 import { editor } from "monaco-editor";
+// import { searchParams } from "./Search";
 
-const jsonParams: editor.IStandaloneEditorConstructionOptions = {
+export const jsonParams: editor.IStandaloneEditorConstructionOptions = {
   language: "json",
   automaticLayout: true,
-  renderValidationDecorations: "on",
-  fontSize: 9,
+  renderValidationDecorations: "off",
+  fontSize: 11,
   wordWrap: "on",
   tabSize: 1,
 };
+
+export const plainParams: editor.IStandaloneEditorConstructionOptions = {
+  fontSize: 9,
+  lineNumbers: "off",
+  minimap: { enabled: false },
+  readOnly: true,
+  scrollbar: {
+    useShadows: false,
+    vertical: "hidden",
+  },
+  overviewRulerLanes: 0,
+  overviewRulerBorder: false,
+  hideCursorInOverviewRuler: true,
+};
+
+export const searchParams: editor.IStandaloneEditorConstructionOptions = 
+Object.assign(plainParams, {
+  renderLineHighlight: "none",
+  quickSuggestions: false,
+  // glyphMargin: false,
+  lineDecorationsWidth: 0,
+  folding: false,
+  // fixedOverflowWidgets: true,
+  acceptSuggestionOnEnter: "on",
+  hover: {
+    delay: 100,
+  },
+  roundedSelection: false,
+  contextmenu: false,
+  cursorStyle: "line-thin",
+  occurrencesHighlight: false,
+  links: false,
+  minimap: { enabled: false },
+  // see: https://github.com/microsoft/monaco-editor/issues/1746
+  wordBasedSuggestions: false,
+  // disable `Find`
+  find: {
+    // addExtraSpaceOnTop: false,
+    autoFindInSelection: "never",
+    seedSearchStringFromSelection: "never",
+  },
+  fontSize: 9,
+  fontWeight: "normal",
+  wordWrap: "off",
+  // lineNumbers: "interval",
+  lineNumbersMinChars: 1,
+  overviewRulerLanes: 0,
+  overviewRulerBorder: false,
+  hideCursorInOverviewRuler: true,
+  scrollBeyondLastColumn: 0,
+  scrollbar: {
+    horizontal: "hidden",
+    vertical: "hidden",
+    // avoid can not scroll page when hover monaco
+    alwaysConsumeMouseWheel: false,
+  },
+	readOnly: false
+});
 
 export const diffEditor = editor.create(document.getElementById("diffContainer"), {
   ...jsonParams,
@@ -35,7 +94,11 @@ export const nodeEditor = editor.create(document.getElementById("nodeContainer")
 });
 
 export const fileNameEditor = editor.create(document.getElementById("fileNameContainer"), {
-  ...jsonParams,
+  ...searchParams,
+});
+
+export const regexEditor = editor.create(document.getElementById("regexContainer"), {
+	...searchParams,
 });
 
 fileNameEditor.getModel().setValue("computed_style_utils.cc");
@@ -54,19 +117,6 @@ cppEditor.onDidScrollChange((e) => {
   cppLinesEditor.setScrollTop(e.scrollTop);
 });
 
-export const plainParams: editor.IStandaloneEditorConstructionOptions = {
-  fontSize: 9,
-  lineNumbers: "off",
-  minimap: { enabled: false },
-  readOnly: true,
-  scrollbar: {
-    useShadows: false,
-    vertical: "hidden",
-  },
-  overviewRulerLanes: 0,
-  overviewRulerBorder: false,
-  hideCursorInOverviewRuler: true,
-};
 
 export const cppLinesEditor = editor.create(document.getElementById("cppLinesContainer"), {
   ...plainParams,

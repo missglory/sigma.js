@@ -9,7 +9,7 @@
   "exclude": [
     "node_modules/*"
   ],
-	"include": ["../../external-types/**/*", "../../examples/**/*", "../../src/**/*"],
+	// "include": ["../../external-types/**/*", "../../examples/**/*", "../../src/**/*"],
 	"compilerOptions": {
 		"typeRoots": ["../../node_modules/@types/", "../../external-types/"],
 	},

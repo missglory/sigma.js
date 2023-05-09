@@ -10,7 +10,7 @@ import { searchInputs, setSearchQuery } from "./Search";
 import { diffEditor } from "./Editors";
 import { state } from "./State";
 import { fileButton } from "./LoadFile";
-
+import * as Plotly from "./Plotly";
 
 
 // Promise.all([fetch("./chrome_deps.json")])
@@ -199,6 +199,14 @@ for (const el of document.getElementsByClassName("collapseButton")) {
   };
 }
 
+document.getElementById("plotButton").addEventListener("click", (e) => {
+	// console.log("tst")
+	// document.getElementById("sigma-container").style.display = "none";
+	// document.getElementById("plot").style.display = "block";
+	Plotly.drawHistogram();
+});
+
+document.getElementById("plotButton").dispatchEvent(new Event("click"));
 
 Surreal.surrealConnect();
 
