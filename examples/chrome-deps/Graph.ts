@@ -76,7 +76,7 @@ const tree2GraphRecursion = (tree, graph, parentId = null, lvl, props = {}) => {
     return;
   }
   unparsedChildren.forEach((ch) => {
-    tree2GraphRecursion(ch, graph, nodeId, lvl + 1, { color: '#764' });
+    tree2GraphRecursion(ch, graph, nodeId, lvl + 1, { color: '#774' });
   });
 };
 
