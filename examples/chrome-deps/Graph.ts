@@ -1,10 +1,13 @@
 import * as graphology from "graphology";
 import chroma from "chroma-js";
 import { appendText, graphEditor } from "./Editors";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
 export const graph = new graphology.DirectedGraph({});
+export let graphRoot;
 import { downscaleConst, renderer } from "./Renderer";
+import * as Ranges from "./Ranges";
+import { fileText } from "./LoadFile";
 
 export const object2Graph = async (dataRaw, graph: graphology.DirectedGraph, append = true) => {
   Object.entries(dataRaw).forEach((rootNode, i) => {
@@ -14,29 +17,34 @@ export const object2Graph = async (dataRaw, graph: graphology.DirectedGraph, app
 };
 
 function polar2Cartesian(angle, distance) {
-  var radians = (angle * Math.PI * 2);
-  return { x: distance * Math.cos(radians), y:  distance * Math.sin(radians) };
+  const radians = angle * Math.PI * 2;
+  return { x: distance * Math.cos(radians), y: distance * Math.sin(radians) };
 }
-
 
 let _normalize = 0;
 
-const tree2GraphRecursion = (tree, graph, parentId = null, lvl) => {
+const tree2GraphRecursion = (tree, graph, parentId = null, lvl, props = {}) => {
   // if (lvl > 2) { return; }
   const nodeId = uuidv4();
-  const angle = (tree.location.endLine + tree.location.line) / (2 * _normalize);
+  const angle = (tree.location.endOffset + tree.location.offset) / (2 * _normalize);
   const distance = lvl * 100;
   const coord = polar2Cartesian(angle, distance);
-  graph.addNode(
-		nodeId,
-		{
-      ...coord,
-			size: (Math.pow(tree.location.endLine - tree.location.line + 1, 0.15)) + 0.5,
-			...tree,
-			children: undefined,
-      label: tree.kind.replace("CursorKind.", ""),
-		}
-	);
+  const rangeFinder = new Ranges.RangeFinder([tree.location.offset, tree.location.endOffset]).addRanges(
+      tree.children.map((ch) => [ch.location.offset, ch.location.endOffset]),
+  );
+  // const gaps = Ranges.findGaps(
+  //   [tree.location.offset, tree.location.endOffset],
+  // );
+  graph.addNode(nodeId, {
+    ...coord,
+    size: Math.pow(tree.location.endOffset - tree.location.offset + 1, 0.15) + 0.5,
+    ...tree,
+    children: undefined,
+    label: tree.kind.replace("CursorKind.", ""),
+    gaps: rangeFinder.getHoles(),
+    ...props,
+    // gapLines: gapLines,
+  });
 
   // If there's a parent, add an edge between the parent and the current node
   if (parentId !== null) {
@@ -45,19 +53,42 @@ const tree2GraphRecursion = (tree, graph, parentId = null, lvl) => {
 
   // If the current node has children, recursively process them
   if (Array.isArray(tree.children)) {
-    tree.children.forEach(child => tree2GraphRecursion(child, graph, nodeId, lvl + 1));
+    tree.children.forEach((child) => tree2GraphRecursion(child, graph, nodeId, lvl + 1));
   }
-}
+
+  // const gapLines = gaps.map((g) => {
+  //   return g.map((gi) => Utils.getLineColumn(fileText, gi));
+  // });
+  const unparsedChildren = rangeFinder.getHoles().map((g) => {
+    return {
+      kind: "NOT_PARSED",
+      location: {
+        // line:
+        // endLine:
+        offset: g[0],
+        endOffset: g[1],
+      },
+      children: [],
+    };
+  });
+  if (unparsedChildren.length === 1) {
+    return;
+  }
+  unparsedChildren.forEach((ch) => {
+    tree2GraphRecursion(ch, graph, nodeId, lvl + 1, { color: '#844' });
+  });
+};
 
 export const tree2Graph = async (tree, graph, refresh = false) => {
   if (refresh) {
     graph.clear();
-    _normalize = tree.location.endLine - tree.location.line;
+    _normalize = tree.location.endOffset - tree.location.offset;
+    graphRoot = tree;
   }
   tree2GraphRecursion(tree, graph, null, 0);
   renderer.refresh();
   return graph;
-}
+};
 
 export const string2Graph = (rootNode, i, dataRaw, graph, append = true) => {
   const cRoot = chroma.random()._rgb;
@@ -106,60 +137,58 @@ export const string2Graph = (rootNode, i, dataRaw, graph, append = true) => {
 const someEdgeI = (e) => true;
 
 export const forEachLine = (line, rootNode, hierarchy, append) => {
-    const lvl = line.lastIndexOf(" ");
+  const lvl = line.lastIndexOf(" ");
 
-    const l = line
-    .replace(/^\s+/g, '')
-    .replace(/\.\.\.$/g, '');
+  const l = line.replace(/^\s+/g, "").replace(/\.\.\.$/g, "");
 
-    if (l.length > 3 && l.at(-1) == "." && l.at(-2) === "." && l.at(-3) === ".") {
-      return;
-    }
+  if (l.length > 3 && l.at(-1) == "." && l.at(-2) === "." && l.at(-3) === ".") {
+    return;
+  }
 
-    if (!append) {
-      try{
-        graph.dropEdge(l, rootNode);
-      } catch (e) {}
-      return;
-    }
-
+  if (!append) {
     try {
-      const c = chroma.random()._rgb;
-      graph.addNode(
-        l,
-        {
-        x: c[0] * downscaleConst,
-        y: c[1] * downscaleConst,
-        // size: Math.pow(15 / (lvl + 2), 0.5),
-        size: 4,
-        color: chroma.random().hex(),
-      });
-      graph.setNodeAttribute(l, "label", l);
-    } catch (err) {
-      appendText(l + "\n", graphEditor.getModel());
-    }
+      graph.dropEdge(l, rootNode);
+    } catch (e) {}
+    return;
+  }
 
-    try {
-      if (hierarchy.length > 0) {
-        graph.addDirectedEdge(l, hierarchy.at(-1).name, {
-          color: "#aaa",
-        });
-      }
-    } catch (err) {}
+  try {
+    const c = chroma.random()._rgb;
+    graph.addNode(l, {
+      x: c[0] * downscaleConst,
+      y: c[1] * downscaleConst,
+      // size: Math.pow(15 / (lvl + 2), 0.5),
+      size: 4,
+      color: chroma.random().hex(),
+    });
+    graph.setNodeAttribute(l, "label", l);
+  } catch (err) {
+    appendText(l + "\n", graphEditor.getModel());
+  }
 
-    if (hierarchy.length === 0 || lvl > hierarchy.at(-1).lvl) {
-      hierarchy.push({
-        name: l,
-        lvl: lvl,
+  try {
+    if (hierarchy.length > 0) {
+      graph.addDirectedEdge(l, hierarchy.at(-1).name, {
+        color: "#aaa",
       });
     }
+  } catch (err) {}
 
-    while (hierarchy.length > 0 && lvl < hierarchy.at(-1).lvl) {
-      hierarchy.pop();
-    }
+  if (hierarchy.length === 0 || lvl > hierarchy.at(-1).lvl) {
+    hierarchy.push({
+      name: l,
+      lvl: lvl,
+    });
+  }
+
+  while (hierarchy.length > 0 && lvl < hierarchy.at(-1).lvl) {
+    hierarchy.pop();
+  }
 };
 
-const dropNodeF = (node, i, graph) => { graph.dropNode(node); }
+const dropNodeF = (node, i, graph) => {
+  graph.dropNode(node);
+};
 
 export const graph2Object = (graph: graphology.DirectedGraph) => {
   let res = {};
@@ -174,7 +203,6 @@ export const graph2Object = (graph: graphology.DirectedGraph) => {
 const graph2JSON = async (graph: graphology.DirectedGraph) => {
   return JSON.stringify(graph2Object(graph), null, 1);
 };
-
 
 const line2diff = async (n, graph, editor = graphEditor) => {
   let nodeObj = {};
@@ -194,4 +222,3 @@ export const graph2diffFull = async (graph: graphology.DirectedGraph) => {
   const v = await graph2JSON(graph);
   appendText(v, graphEditor.getModel());
 };
-

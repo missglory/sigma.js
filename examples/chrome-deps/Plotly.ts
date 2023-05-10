@@ -67,7 +67,7 @@ export const drawHistogram = () => {
 				// }]
 				margin: {
 					r: 0,
-					l: 200,
+					l: 220,
 					t: 0,
 					b: 10,
 				},

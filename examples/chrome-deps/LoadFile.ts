@@ -4,37 +4,7 @@ import { tree2Graph } from "./Graph";
 import { graph } from "./Graph";
 
 export let fileText = '';
-let lines = fileText.split('\n');
 export let fileName = '';
-export const getTextBetweenPositions = (startLine, startColumn, endLine, endColumn) => {
-  // Split the file text into an array of lines
-
-  // Get the text between the starting and ending positions
-  let text = '';
-  for (let i = startLine - 1; i < endLine; i++) {
-    const line = lines[i];
-
-    // If this is the starting line, start at the starting column
-    const startIndex = i === startLine - 1 ? startColumn - 1 : 0;
-
-    // If this is the ending line, end at the ending column
-    const endIndex = i === endLine - 1 ? endColumn : line.length;
-
-    // Add the text between the start and end positions to the result
-    text += line.substring(startIndex, endIndex);
-
-    // If this isn't the last line, add a newline character
-    if (i < endLine - 1) {
-      text += '\n';
-    }
-  }
-
-  // Concatenate the line numbers
-  const lineNumbers = Array.from({ length: endLine - startLine + 1 }, (_, i) => startLine + i).join(',');
-
-  // Return the result and the line numbers
-  return { text, lineNumbers };
-}
 
 export function getFileContents(file) {
   return new Promise((resolve, reject) => {
@@ -106,7 +76,6 @@ fileButton.addEventListener('click', async () => {
       start(fileAST, true, true);
       console.log("file AST")
       fileText = fileContents;
-      lines = fileText.split('\n');
     } catch (err) {
       console.error(err);
     }
