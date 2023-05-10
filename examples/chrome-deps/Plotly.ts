@@ -3,7 +3,7 @@ import { appendText, fileNameEditor, graphEditor, regexEditor } from "./Editors"
 import { editor } from 'monaco-editor';
 
 
-regexEditor.getModel().setValue('\\b(?!return\\b|auto\\b|int\\b)[A-Za-z_][A-Za-z0-9_]*\\b')
+regexEditor.getModel().setValue('\\b(?!return\\b|auto\\b|int\\b)[A-Za-z_][A-Za-z0-9_(::)]*\\b')
 
 export const drawHistogram = () => {
 	const file = fileNameEditor.getModel().getValue();
@@ -67,7 +67,7 @@ export const drawHistogram = () => {
 				// }]
 				margin: {
 					r: 0,
-					l: 130,
+					l: 200,
 					t: 0,
 					b: 10,
 				},
