@@ -3,11 +3,11 @@
 # Define the green color for output
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
-
+GREY='\033[0;30m'
 # Check if the IP address argument is provided
-if [ -z "$1" ]
+if [ -z "$1" ] || [ -z "$2" ]
   then
-    echo "No IP address argument provided"
+    echo "No IP address & server arguments provided"
     exit 1
 fi
 
@@ -15,12 +15,11 @@ fi
 for file in *
 do
   # Check if the file is a regular file (not a directory) and not the script itself
-  if [ -f "$file" ] && [ "$file" != "replace-localhost.sh" ]
+  if [ -f "$file" ] && [ "$file" != "replace-server-address.sh" ]
     then
-      # Replace "localhost" with the specified IP address in the file
-      if grep -q "localhost" "$file"; then
-        sed -i "s/localhost/$1/g" "$file"
-        echo "Replaced localhost with $1 in file $file"
+      if grep -q "$2" "$file"; then
+        sed -i "s/$2/$1/g" "$file"
+        echo "Replaced $2 with $1 in file $file"
         # Print the name of the file and line number for each line that was replaced
         grep -n "$1" "$file" | while read -r line ; do
           lineNumber=$(echo $line | cut -f1 -d:)
@@ -28,7 +27,7 @@ do
           echo -e "${GREEN}[$file:$lineNumber]${NC} $lineContent"
         done
       else
-        echo "No changes made to file $file"
+        echo -e "${GREY}No changes made to file${NC} $file"
       fi
   fi
 done
