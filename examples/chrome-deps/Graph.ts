@@ -62,6 +62,7 @@ const tree2GraphRecursion = (tree, graph, parentId = null, lvl, props = {}) => {
   const unparsedChildren = rangeFinder.getHoles().map((g) => {
     return {
       kind: "NOT_PARSED",
+      label: "NOT_PARSED",
       location: {
         // line:
         // endLine:
@@ -75,7 +76,7 @@ const tree2GraphRecursion = (tree, graph, parentId = null, lvl, props = {}) => {
     return;
   }
   unparsedChildren.forEach((ch) => {
-    tree2GraphRecursion(ch, graph, nodeId, lvl + 1, { color: '#844' });
+    tree2GraphRecursion(ch, graph, nodeId, lvl + 1, { color: '#764' });
   });
 };
 

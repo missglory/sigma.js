@@ -3,7 +3,7 @@ import { Buffer } from "buffer";
 
 export type Gap = [number, number];
 
-type Range = [number, number];
+export type Range = [number, number];
 
 export class RangeFinder {
   private holes: Range[];
@@ -44,35 +44,21 @@ export class RangeFinder {
     return this.holes;
   }
 
-  isContainedInRange(testRange: Range): Range | null {
+  isContainedInRange(testRange: Range) {
     for (const hole of this.holes) {
-      if (testRange[0] <= hole[0] && testRange[1] >= hole[1]) {
-        return hole;
+      if (testRange[0] >= hole[0] && testRange[1] <= hole[1]) {
+        // return hole;
+        return true;
       }
     }
-
-    return null;
+    return false;
+    // return null;
   }
 
   async findHolesByRegexInFile(filePath: string, regex: RegExp): Promise<Range[]> {
     // const content = await fs.promises.readFile(filePath, 'utf8');
 
-    const matches = Array.from(fileText.matchAll(regex), m => [m.index, m.index + m[0].length] as Range);
-
-    for (const match of matches) {
-      this.addRange(match);
-    }
-
-    return this.getHoles();
-  }
-
-  findHolesByRegex(content: string, regex: RegExp): Range[] {
-    const matches: Range[] = [];
-
-    let match: RegExpExecArray | null;
-    while ((match = regex.exec(content)) !== null) {
-      matches.push([match.index, match.index + match[0].length]);
-    }
+    const matches = Array.from(fileText.matchAll(regex), (m) => [m.index, m.index + m[0].length] as Range);
 
     for (const match of matches) {
       this.addRange(match);

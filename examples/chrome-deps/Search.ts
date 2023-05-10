@@ -8,28 +8,73 @@ import { Coordinates } from "sigma/types";
 import * as Ranges from "./Ranges";
 import { fileText } from "./LoadFile";
 
+const findHolesByRegex = (content: string, regex: RegExp): Ranges.Range[] => {
+  const matches: Ranges.Range[] = [];
+
+  // Make sure the regex has the global flag
+  const globalRegex = new RegExp(regex.source, regex.flags.includes("g") ? regex.flags : regex.flags + "g");
+
+  let match: RegExpExecArray | null;
+  while ((match = globalRegex.exec(content)) !== null) {
+    const matchIdx: Ranges.Range = [match.index, match.index + match[0].length];
+    // if (range[0] <= matchIdx[0] && range[1] >= matchIdx[1]) {
+    // if (this.isContainedInRange(matchIdx)) {
+    matches.push(matchIdx);
+    // }
+
+    // Prevent infinite loop with zero-length matches
+    if (match[0].length === 0) {
+      globalRegex.lastIndex++;
+    }
+  }
+
+  if (matches.length === 0) {
+  }
+
+  return matches;
+  // for (const match of matches) {
+  //   this.addRange(match);
+  // }
+
+  // return this.getHoles();
+};
+
 export const searchInputs = [0, 1].map((v) => {
   return editor.create(document.getElementById(`search-input${v.toString()}`), {
     ...searchParams,
   });
 });
 
-const testRange = (n, pattern, suggestions): boolean => {
-   const ranges= new Ranges.RangeFinder([n.location.offset, n.location.endOffset]);
-   ranges.findHolesByRegex(fileText, pattern);
-    const occurences = ranges.isContainedInRange([location['offset'], location['endOffset']]);
-     if (occurences.length > 0) {
-      // suggestions.push({
-        // id: n,
-        // label: "root",
-        // range: occurences,
-      // });
-      // suggestions.push(id);
-      return true;
-    } else {
-      return false;
-    }
+const testRange = (n, finds): boolean => {
+  const ranges = new Ranges.RangeFinder([n.location.offset, n.location.endOffset]);
+  // findHolesByRegex(fileText, pattern, ranges.getHoles().at(0));
 
+  // const occurences = ranges.isContainedInRange([n.location.offset, n.location.endOffset]);
+  // if (occurences) {
+  // suggestions.push({
+  // id: n,
+  // label: "root",
+  // range: occurences,
+  // });
+  // suggestions.push(id);
+  // finds.forEach((f) => {
+  //   const v = ranges.isContainedInRange(f);
+  //   if (v) {
+  //     return true;
+  //   }
+  // });
+  for (const find of finds) {
+    // const v = ranges.isContainedInRange(find);
+    const v = n.location.offset <= find[0] && n.location.endOffset >= find[1];
+    if (v) {
+      return true;
+    }
+  }
+  return false;
+  //   return true;
+  // } else {
+  //   return false;
+  // }
 };
 
 export function setSearchQuery(query: string, selection: number) {
@@ -55,23 +100,30 @@ export function setSearchQuery(query: string, selection: number) {
 
   const pattern = new RegExp(query);
 
-  const suggestionsCode = [];
-  const suggestions = graph
+  // const suggestionsCode = [];
+  let suggestions = graph
     .nodes()
-    .map((n) => ({
-      id: n,
-      // label: "^" + n + "$",
-      label: graph.getNodeAttribute(n, "label"),
-      // label: n
-      location: graph.getNodeAttribute(n, "location"),
-    }))
-    // .filter(({ label }) => label.includes(query));
-    .filter((n) => pattern.test(n.label) || addGlobalFlag(pattern).test(n.id)
-     || testRange(n, pattern, suggestions)
-    );
-
-  // updateStateSelection({ selected: undefined, suggest: suggestions }, selection);
-  // renderer.refresh();
+    .map((n) => {
+      return {
+        id: n,
+        label: graph.getNodeAttribute(n, "label"),
+        location: graph.getNodeAttribute(n, "location"),
+      };
+    })
+    .filter((n) => pattern.test(n.label) || pattern.test(n.id));
+  if (suggestions.length === 0) {
+    const finds = findHolesByRegex(fileText, pattern);
+    suggestions = graph
+      .nodes()
+      .map((n) => {
+        return {
+          id: n,
+          label: graph.getNodeAttribute(n, "label"),
+          location: graph.getNodeAttribute(n, "location"),
+        };
+      })
+      .filter((n) => testRange(n, finds));
+  }
 
   if (suggestions.length === 1) {
     updateStateSelection({ selected: suggestions[0].id, suggest: undefined }, selection);
@@ -89,9 +141,4 @@ export function setSearchQuery(query: string, selection: number) {
   }
 
   renderer.refresh();
-}
-
-function addGlobalFlag(pattern: RegExp): RegExp {
-  const flags = pattern.flags.includes('g') ? pattern.flags : pattern.flags + 'g';
-  return new RegExp(pattern.source, flags);
 }
