@@ -12,7 +12,8 @@
 	<style>
 		html,
 		body {
-			font-family: sans-serif;
+			/* font-family: "JetBrains Mono"; */
+			font-family: 'Roboto', sans-serif;
 			background: #000;
 			font-size: 13;
 			/* overflow: hidden; */
@@ -204,14 +205,14 @@
 			/* float: left; */
 			/* height: 100%; */
 			width: 88%;
-			/* display: inline-block; */
+			display: inline-flex;
 			float: left;
 		}
 
 		#search-input1 {
 			/* float: right; */
 			/* display:flex; */
-			/* display: inline-block; */
+			display: inline-flex;
 			/* float: right; */
 			/* height: 20px; */
 			width: 88%;
@@ -230,6 +231,16 @@
 			display: flex;
 			flex-wrap: wrap;
 			justify-content: space-between;
+		}
+
+		#searchInputContainer0 {
+			display: inline-flex;
+			width: 60%;
+		}
+
+		#searchInputContainer1 {
+			display: inline-flex;
+			width: 30%;
 		}
 
 		@media (max-aspect-ratio: 1/1) {
@@ -293,14 +304,9 @@
 
 		}
 
-		/* Add transition to the scrollbar */
-		/* .scroll-container::-webkit-scrollbar-thumb {
-			transition: all 1.5s ease-in-out;
-		} */
-
 		/* Change the scrollbar thumb color on hover */
 		.scroll-container:hover::-webkit-scrollbar-thumb {
-			background-color: #555;
+			background-color: #888;
 		}
 
 		.scroll-container::-webkit-scrollbar-corner {
@@ -342,21 +348,6 @@
 				<button id="reachableGetButton">Get</button>
 				<button id="reachableInOutButton">Out</button>
 			</fieldset>
-			<fieldset>
-				<button id="collapse1" class="collapseButton">▼</button>
-				<small>Search</small>
-				<fieldset id="searchFieldset">
-					<div id="searchInputContainer0" class="search-input">
-						<div id="search-input0"></div>
-						<tt id="searchTT0" class="inlineEl">0</tt>
-					</div>
-					<button id="reroute" class="inlineEl"><b>⇆</b></button>
-					<div id="searchInputContainer1" class="search-input">
-						<div id="search-input1"></div>
-						<tt id="searchTT1" class="inlineEl">0</tt>
-					</div>
-				</fieldset>
-			</fieldset>
 			<fieldset id="fieldsContainer">
 				<fieldset id="graphInterface">
 					<button id="collapse6" class="collapseButton">▼</button>
@@ -377,6 +368,21 @@
 					<button id="wwButton">Word wrap</button>
 				</fieldset>
 				<div id="plot"></div>
+			</fieldset>
+			<fieldset>
+				<button id="collapse1" class="collapseButton">▼</button>
+				<small>Search</small>
+				<fieldset id="searchFieldset">
+					<div id="searchInputContainer0" class="search-input">
+						<div id="search-input0"></div>
+						<tt id="searchTT0" class="inlineEl">0</tt>
+					</div>
+					<button id="reroute" class="inlineEl"><b>⇆</b></button>
+					<div id="searchInputContainer1" class="search-input">
+						<div id="search-input1"></div>
+						<tt id="searchTT1" class="inlineEl">0</tt>
+					</div>
+				</fieldset>
 			</fieldset>
 			<fieldset id="graphWrapper">
 				<button id="collapse2" class="collapseButton">▼</button>

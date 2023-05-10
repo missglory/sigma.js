@@ -1,5 +1,5 @@
 import Plotly from "plotly.js-dist";
-import { fileNameEditor, regexEditor } from "./Editors";
+import { appendText, fileNameEditor, graphEditor, regexEditor } from "./Editors";
 import { editor } from 'monaco-editor';
 
 
@@ -17,13 +17,13 @@ export const drawHistogram = () => {
 				(a: any, b: any) => b[1] - a[1];
 			// Convert data to arrays for Plotly.js and sort by count in descending order
 			let sortedData = Object.entries(data).sort(order);
-			let x = sortedData.map(entry => entry[0]);
-			let y = sortedData.map(entry => entry[1]);
+			let x = sortedData.map(entry => entry[1]);
+			let y = sortedData.map(entry => entry[0]);
 
 			// Create Plotly.js histogram trace
 			let trace = {
-				x: y,
-				y: x,
+				x: x,
+				y: y,
 				type: 'histogramgl',
 				// histfunc: 'sum',
 				// histnorm: "count",
@@ -65,6 +65,12 @@ export const drawHistogram = () => {
 				// 		]
 				// 	}]
 				// }]
+				margin: {
+					r: 0,
+					l: 130,
+					t: 0,
+					b: 10,
+				},
 				plot_bgcolor: 'black',
 				paper_bgcolor: 'black',
 				font: {
@@ -75,5 +81,7 @@ export const drawHistogram = () => {
 
 			// Draw Plotly.js histogram in WebGL canvas
 			Plotly.newPlot('plot', [trace], layout, { renderer: 'webgl', responsive: true });
+
+			appendText(sortedData.map((a) => a[1].toString() + ": " + a[0]).join("\n"), graphEditor.getModel());
 		});
 }
