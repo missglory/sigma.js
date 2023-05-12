@@ -37,7 +37,7 @@ const tree2GraphRecursion = (tree, graph, parentId = null, lvl, props = {}) => {
   // );
   graph.addNode(nodeId, {
     ...coord,
-    size: Math.pow(tree.location.endOffset - tree.location.offset + 1, 0.15) + 0.5,
+    size: Math.pow(tree.location.endOffset - tree.location.offset + 1, 0.15),
     ...tree,
     children: undefined,
     label: tree.kind.replace("CursorKind.", ""),

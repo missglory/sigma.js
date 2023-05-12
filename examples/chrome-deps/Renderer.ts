@@ -4,6 +4,8 @@ import EdgesFastProgram from "sigma/rendering/webgl/programs/edge.fast";
 import { state } from "./State";
 import { EdgeDisplayData, NodeDisplayData } from "sigma/types";
 import { searchInputs } from "./Search";
+import { editor } from "monaco-editor";
+import { appendText } from "./Editors";
 
 const container = document.getElementById("sigma-container") as HTMLElement;
 export const renderer = new Sigma(graph, container, {
@@ -54,11 +56,8 @@ const setupRenderer = () => {
   });
 
   const clickFunc = (event, index) => {
-    // searchInputs[index].select();
     const v = "^" + event.node + "$";
-    // searchInputs[index].value = v;
-    // searchInputs[index].dispatchEvent(new Event("input"));
-    searchInputs[index].getModel().setValue(v);
+    appendText(v, searchInputs[index].getModel());
   };
   renderer.on("clickNode", (e) => {
     // if (searchInputs)

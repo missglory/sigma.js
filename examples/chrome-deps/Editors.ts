@@ -101,7 +101,7 @@ export const regexEditor = editor.create(document.getElementById("regexContainer
 	...searchParams,
 });
 
-fileNameEditor.getModel().setValue("computed_style_utils.cc");
+appendText("computed_style_utils.cc", fileNameEditor.getModel());
 
 export const cppEditor = editor.create(document.getElementById("cppContainer"), {
   language: "cpp",
@@ -141,7 +141,7 @@ export function appendText(text, model) {
   const op = {
     identifier: { major: 1, minor: 1 },
     range: range,
-    text: "\n" + text,
+    text: text,
     forceMoveMarkers: true,
   };
   model.pushEditOperations([], [op], null);
@@ -152,6 +152,7 @@ export function appendText(text, model) {
 import * as ReachableCounts from "./ReachableCounts";
 import { state } from "./State";
 import { graph } from "./Graph";
+import { fileName } from "./LoadFile";
 
 let reachableInOut = "In";
 document.getElementById("reachableInOutButton").onclick = (e) => {

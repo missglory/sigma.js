@@ -7,7 +7,7 @@ import { graph } from "./Graph";
 import { downscaleConst, getHeatMapColor, renderer } from "./Renderer";
 import { graph2Object, graph2diffFull, object2Graph, tree2Graph } from "./Graph";
 import { searchInputs, setSearchQuery } from "./Search";
-import { diffEditor } from "./Editors";
+import { appendText, diffEditor } from "./Editors";
 import { state } from "./State";
 import { fileButton } from "./LoadFile";
 import * as Plotly from "./Plotly";
@@ -139,7 +139,7 @@ document.getElementById("resetBtn").onclick = (e) => {
 document.getElementById("reroute").onclick = (ev) => {
   const vals = searchInputs.map((input) => input.getModel().getValue());
   searchInputs.forEach((input, index) => {
-    input.getModel().setValue(vals[(index + 1) % vals.length]);
+    appendText(vals[(index + 1) % vals.length], input.getModel());
     // input.dispatchEvent(new Event("input"));
   });
 };

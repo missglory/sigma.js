@@ -1,4 +1,5 @@
 import * as graphology from "graphology";
+import * as Editors from "./Editors";
 
 export type NodeKey = string;
 export const reachableCounts = new Map<NodeKey, number>();
@@ -136,7 +137,7 @@ export function countReachableNodes(graph) {
 
 export function fillEditorWithLines(lines: string[], editor): void {
   // const editor = monaco.editor.getModels()[0]; // get the first editor instance
-  editor.getModel().setValue(lines.join('\n'));
+  Editors.appendText(lines.join('\n'), editor.getModel());
 }
 
 

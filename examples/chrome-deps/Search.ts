@@ -1,7 +1,7 @@
 import { editor } from "monaco-editor";
 import { renderer } from "./Renderer";
 import { state, updateStateSelection } from "./State";
-import { plainParams, searchParams } from "./Editors";
+import { appendText, plainParams, searchParams } from "./Editors";
 import { assignPath } from "./Paths";
 import { graph, graphRoot } from "./Graph";
 import { Coordinates } from "sigma/types";
@@ -95,7 +95,7 @@ export function setSearchQuery(query: string, selection: number) {
 
   state.searchQuery[selection] = query;
   if (searchInputs[selection].getModel().getValue() !== query) {
-    searchInputs[selection].getModel().setValue(query);
+    appendText(query, searchInputs[selection].getModel());
   }
 
   const pattern = new RegExp(query);

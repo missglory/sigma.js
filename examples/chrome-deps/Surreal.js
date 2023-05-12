@@ -1,7 +1,7 @@
 import Surreal from 'surrealdb.js';
 import { appendText, diffEditor, nameEditor, sortEditor } from './Editors';
 
-export const db = new Surreal('http://127.0.0.1:8000/rpc');
+export const db = new Surreal('http://localhost:8000/rpc');
 
 export async function surrealConnect() {
 
@@ -57,8 +57,8 @@ export async function surrealConnect() {
 	}
 }
 
-diffEditor.getModel().setValue("select * from node");
-nameEditor.getModel().setValue("node")
+appendText("select * from node", diffEditor.getModel());
+appendText("node", nameEditor.getModel());
 
 // export async function query
 document.getElementById("queryButton").onclick = async (e) => {
@@ -81,7 +81,7 @@ document.getElementById("queryButton").onclick = async (e) => {
 		.map(n => { return JSON.stringify(n, null, 1); })
 		.join('\n');
 
-	sortEditor.getModel().setValue(resultString);
+	appendText(resultString, sortEditor.getModel());
 	// sortEditor.getAction('editor.action.formatDocument').run();
 }
 
@@ -109,8 +109,8 @@ document.getElementById("selectButton").onclick = async (e) => {
 		resultString = JSON.stringify(q);
 	}
 
-	sortEditor.getModel().setValue(resultString, null, 1);
-	// sortEditor.getAction('editor.action.formatDocument').run();
+	appendText(resultString, sortEditor.getModel());
+	sortEditor.getAction('editor.action.formatDocument').run();
 }
 
 
@@ -139,7 +139,7 @@ document.getElementById("createButton").onclick = async (e) => {
 			resultString = JSON.stringify(q, null, 1);
 		}
 
-		sortEditor.getModel().setValue(resultString);
+		appendText(resultString, sortEditor.getModel());
 	} catch (e) {
 		alert("create error parse JSON");
 	}
@@ -165,7 +165,7 @@ document.getElementById("updateButton").onclick = async (e) => {
 			resultString = JSON.stringify(q, null, 1);
 	}
 
-	sortEditor.getModel().setValue(resultString);
+	appendText(resultString, sortEditor.getModel());
 	// sortEditor.getAction('editor.action.formatDocument').run();
 }
 
