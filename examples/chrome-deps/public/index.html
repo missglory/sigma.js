@@ -175,6 +175,30 @@
 			margin-bottom: 13px;
 		}
 
+		#revContainer0 {
+			height: 20px;
+			width: 40%;
+		}
+
+		#revContainer1 {
+			height: 20px;
+			width: 40%;
+		}
+
+		#revFieldset {
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: space-between;
+		}
+
+		.editorErrorDecoration {
+			background: rgba(255, 0, 0, 0.3);
+		}
+
+		.editorSuccessDecoration {
+			background: rgba(0, 255, 0, 0.3);
+		}
+
 		#sortContainer {
 			height: 500px;
 		}
@@ -354,6 +378,10 @@
 					<button id="collapse6" class="collapseButton">▼</button>
 					<small>Graph</small>
 					<div id="fileNameContainer" class="editor"></div>
+					<fieldset id="revFieldset">
+						<div id="revContainer0" class="editor"></div>
+						<div id="revContainer1" class="editor"></div>
+					</fieldset>
 					<div id="regexContainer" class="editor"></div>
 					<button id="fileButton">Get AST</button>
 					<button id="plotButton">Get histogram</button>

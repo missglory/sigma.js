@@ -44,25 +44,25 @@ export const updateStateSelection = async (diff, selectionId) => {
     const loc = attrs.location;
     if (loc.line === undefined) {
       //   Object.assign(loc, {
-        //     ...Utils.getLineColumn(fileText, loc.offset),
-        //     // ...Utils.getLineColumn(loc.endOffset, fileText),
-        //   });
-          appendText(JSON.stringify(attrs, null, 1), nodeEditor.getModel());
-          appendText(Ranges.getTextSliceByByteOffset(LoadFile.fileText, loc.offset, loc.endOffset), cppEditor.getModel());
-          const {line, column} = Ranges.getLineColumn(LoadFile.fileText, loc.offset);
-          const end = Ranges.getLineColumn(LoadFile.fileText, loc.endOffset);
-          appendText(Ranges.getLineNumbersString(line, end.line), cppLinesEditor.getModel());
-        } else {
-          // graph.setNodeAttribute(state.selected[selectionId].selected, "code", );
-          const codeAndLines = Ranges.getTextBetweenPositions(loc.line, loc.column, loc.endLine, loc.endColumn);
-          appendText(JSON.stringify(attrs, null, 1), nodeEditor.getModel());
-          // }
-          let codeRaw = codeAndLines.text;
-          // if (codeRaw.length > 3) {
-            //   codeRaw = codeRaw.substring(1, codeRaw.length - 1);
-            // }
-            appendText(codeRaw, cppEditor.getModel());
-            appendText(codeAndLines.lineNumbers.replaceAll("'", "").replaceAll(",", "\n"), cppLinesEditor.getModel());
-          }
+      //     ...Utils.getLineColumn(fileText, loc.offset),
+      //     // ...Utils.getLineColumn(loc.endOffset, fileText),
+      //   });
+      appendText(JSON.stringify(attrs, null, 1), nodeEditor.getModel());
+      appendText(Ranges.getTextSliceByByteOffset(LoadFile.fileText, loc.offset, loc.endOffset), cppEditor.getModel());
+      const { line, column } = Ranges.getLineColumn(LoadFile.fileText, loc.offset);
+      const end = Ranges.getLineColumn(LoadFile.fileText, loc.endOffset);
+      appendText(Ranges.getLineNumbersString(line, end.line), cppLinesEditor.getModel());
+    } else {
+      // graph.setNodeAttribute(state.selected[selectionId].selected, "code", );
+      const codeAndLines = Ranges.getTextBetweenPositions(loc.line, loc.column, loc.endLine, loc.endColumn);
+      appendText(JSON.stringify(attrs, null, 1), nodeEditor.getModel());
+      // }
+      let codeRaw = codeAndLines.text;
+      // if (codeRaw.length > 3) {
+      //   codeRaw = codeRaw.substring(1, codeRaw.length - 1);
+      // }
+      appendText(codeRaw, cppEditor.getModel());
+      appendText(codeAndLines.lineNumbers.replaceAll("'", "").replaceAll(",", "\n"), cppLinesEditor.getModel());
+    }
   }
 };

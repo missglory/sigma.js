@@ -58,7 +58,7 @@ export class RangeFinder {
   async findHolesByRegexInFile(filePath: string, regex: RegExp): Promise<Range[]> {
     // const content = await fs.promises.readFile(filePath, 'utf8');
 
-    const matches = Array.from(fileText.matchAll(regex), (m) => [m.index, m.index + m[0].length] as Range);
+    const matches = Array.from(fileText.matchAll(regex), (m: any) => [m.index, m.index + m[0].length] as Range);
 
     for (const match of matches) {
       this.addRange(match);

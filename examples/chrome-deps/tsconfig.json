@@ -12,5 +12,6 @@
 	// "include": ["../../external-types/**/*", "../../examples/**/*", "../../src/**/*"],
 	"compilerOptions": {
 		"typeRoots": ["../../node_modules/@types/", "../../external-types/"],
+    "noImplicitAny": false
 	},
 }
