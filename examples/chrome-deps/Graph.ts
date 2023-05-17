@@ -4,6 +4,7 @@ import { appendText, graphEditor } from "./Editors";
 import { v4 as uuidv4 } from "uuid";
 
 export const graph = new graphology.DirectedGraph({});
+export const diffGraph = new graphology.DirectedGraph({});
 export let graphRoot;
 import { downscaleConst, renderer } from "./Renderer";
 import * as Ranges from "./Ranges";

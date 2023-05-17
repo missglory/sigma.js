@@ -152,7 +152,7 @@ export function appendText(text, model) {
 import * as ReachableCounts from "./ReachableCounts";
 import { state } from "./State";
 import { graph } from "./Graph";
-import { fileName } from "./LoadFile";
+import { fileNames } from "./LoadFile";
 
 let reachableInOut = "In";
 document.getElementById("reachableInOutButton").onclick = (e) => {

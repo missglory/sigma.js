@@ -134,13 +134,19 @@
 
 		* {
 			color: white;
-			border-radius: 5px;
+			border-radius: 3px;
 			background: rgba(0, 0, 0, 0);
-			border-color: white;
+			border-color: #888;
+		}
+
+		fieldset {
+			border-radius: 8px;
+			/* border-top: 1px; */
+			padding-top: 10px;
 		}
 
 		button {
-			border-color: white;
+			border-color: #aaa;
 		}
 
 		#pathIndex {
@@ -196,7 +202,7 @@
 		}
 
 		.editorSuccessDecoration {
-			background: rgba(0, 255, 0, 0.3);
+			background: rgba(64, 255, 64, 0.3);
 		}
 
 		#sortContainer {
@@ -377,24 +383,30 @@
 				<fieldset id="graphInterface">
 					<button id="collapse6" class="collapseButton">▼</button>
 					<small>Graph</small>
-					<div id="fileNameContainer" class="editor"></div>
-					<fieldset id="revFieldset">
-						<div id="revContainer0" class="editor"></div>
-						<div id="revContainer1" class="editor"></div>
+					<fieldset>
+						<div id="fileNameContainer" class="editor"></div>
+						<fieldset id="revFieldset">
+							<div id="revContainer0" class="editor"></div>
+							<div id="revContainer1" class="editor"></div>
+							<button id="fileButton">Get AST</button>
+						</fieldset>
 					</fieldset>
-					<div id="regexContainer" class="editor"></div>
-					<button id="fileButton">Get AST</button>
-					<button id="plotButton">Get histogram</button>
-					<small>Order by: </small>
-					<select id="selectHistOrder" style="background-color: #1e1e1e;">
-						<option value="locale">Locale</option>
-						<option value="count">Count</option>
-					</select>
+					<fieldset>
+						<div id="regexContainer" class="editor"></div>
+						<button id="plotButton">Get histogram</button>
+						<small>Order by: </small>
+						<select id="selectHistOrder" style="background-color: #1e1e1e;">
+							<option value="locale">Locale</option>
+							<option value="count">Count</option>
+						</select>
+					</fieldset>
 					<!-- <input type="file" id="file-input"> -->
-					<div id="graphContainer" class="editor"></div>
-					<button id="graphAppendButton">Append</button>
-					<button id="graphSubtractButton">Subtract</button>
-					<button id="wwButton">Word wrap</button>
+					<fieldset>
+						<div id="graphContainer" class="editor"></div>
+						<button id="graphAppendButton" hidden>Append</button>
+						<button id="graphSubtractButton" hidden>Subtract</button>
+						<button id="wwButton">Word wrap</button>
+					</fieldset>
 				</fieldset>
 				<div id="plot"></div>
 			</fieldset>

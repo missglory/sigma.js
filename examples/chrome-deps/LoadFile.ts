@@ -5,8 +5,10 @@ import { graph } from "./Graph";
 import { searchParams } from "./Editors";
 import { editor } from 'monaco-editor';
 import * as monaco from "monaco-editor";
-export let fileText = '';
-export let fileName = '';
+
+export let fileText = ['', ''];
+export let fileNames = ['', ''];
+export let fileDiff = '';
 
 export function getFileContents(file) {
   return new Promise((resolve, reject) => {
@@ -69,18 +71,51 @@ fileButton.addEventListener('click', async () => {
   const file = fileNameEditor.getModel().getValue();
   console.log("get file: " + file)
   const fileContents = await getFileContentsFromEndpoint('http://localhost:5000/src', file);
-  console.log(fileContents);
+  // console.log(fileContents);
   if (fileContents) {
     try {
-      fileName = file;
-      const fileAST = await getFileContentsFromEndpoint('http://localhost:5000/ast_from_file', file);
-      console.log(fileAST);
-      start(fileAST, true, true);
+      // const fileAST = await getFileContentsFromEndpoint('http://localhost:5000/ast_from_file', file);
+      const graphs = await Promise.all(revEditors.map(async function (ed, i) {
+      // const graphs = [];
+      // for (let i = 0; i < 2; i++) {
+        // const ed = revEditors[i];
+        const commit = ed.getModel().getValue();
+        // let response;
+        const response = await fetch(
+          `http://localhost:5000/ast_from_file?file=${encodeURIComponent(file)}&commit=${encodeURIComponent(commit)}`
+        );
+        // ).then((v) => {
+        //   console.log(v);
+        //   response = v;
+        // });
+        if (!response.ok) {
+          const message = `An error has occurred: ${response.status}`;
+          throw new Error(message);
+        }
+
+        const fileAST = await response.json();
+        fileNames[i] = file;
+        fileText[i] = fileContents;
+        return fileAST.contents;
+        // graphs.push(fileAST.contents);
+      }));
+        // console.log(fileAST.contents);
+      // }));
+      start(graphs[0], graphs[1], true, true);
       console.log("file AST")
-      fileText = fileContents;
     } catch (err) {
       console.error(err);
     }
+      // ed.getModel().getValue());
+
+      // const asts = graphs.map(
+      //   (g) =>
+      //     g
+      //      .split("\n")
+      //      .map((l) => `"${l.trim()}"`)
+      //      .join("\n")
+      // );
+
   }
 });
 

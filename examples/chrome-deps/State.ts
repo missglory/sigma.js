@@ -42,19 +42,20 @@ export const updateStateSelection = async (diff, selectionId) => {
     const attrs = graph.getNodeAttributes(state.selected[selectionId].selected);
     // delete attrs.code;
     const loc = attrs.location;
+    const file = LoadFile.fileText[0];
     if (loc.line === undefined) {
       //   Object.assign(loc, {
       //     ...Utils.getLineColumn(fileText, loc.offset),
       //     // ...Utils.getLineColumn(loc.endOffset, fileText),
       //   });
       appendText(JSON.stringify(attrs, null, 1), nodeEditor.getModel());
-      appendText(Ranges.getTextSliceByByteOffset(LoadFile.fileText, loc.offset, loc.endOffset), cppEditor.getModel());
-      const { line, column } = Ranges.getLineColumn(LoadFile.fileText, loc.offset);
-      const end = Ranges.getLineColumn(LoadFile.fileText, loc.endOffset);
+      appendText(Ranges.getTextSliceByByteOffset(file, loc.offset, loc.endOffset), cppEditor.getModel());
+      const { line, column } = Ranges.getLineColumn(file, loc.offset);
+      const end = Ranges.getLineColumn(file, loc.endOffset);
       appendText(Ranges.getLineNumbersString(line, end.line), cppLinesEditor.getModel());
     } else {
       // graph.setNodeAttribute(state.selected[selectionId].selected, "code", );
-      const codeAndLines = Ranges.getTextBetweenPositions(loc.line, loc.column, loc.endLine, loc.endColumn);
+      const codeAndLines = Ranges.getTextBetweenPositions(loc.line, loc.column, loc.endLine, loc.endColumn, file);
       appendText(JSON.stringify(attrs, null, 1), nodeEditor.getModel());
       // }
       let codeRaw = codeAndLines.text;

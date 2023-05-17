@@ -54,8 +54,14 @@ export class RangeFinder {
     return false;
     // return null;
   }
-
-  async findHolesByRegexInFile(filePath: string, regex: RegExp): Promise<Range[]> {
+/**
+ * 
+ * @param filePath 
+ * @param regex 
+ * @param {string} fileText 
+ * @returns 
+ */
+  async findHolesByRegexInFile(filePath: string, regex: RegExp, fileText): Promise<Range[]> {
     // const content = await fs.promises.readFile(filePath, 'utf8');
 
     const matches = Array.from(fileText.matchAll(regex), (m: any) => [m.index, m.index + m[0].length] as Range);
@@ -99,7 +105,7 @@ export const getTextSliceByByteOffset = (text: string, startByteOffset: number, 
   return slicedBuffer.toString();
 };
 
-export const getTextBetweenPositions = (startLine, startColumn, endLine, endColumn) => {
+export const getTextBetweenPositions = (startLine, startColumn, endLine, endColumn, fileText) => {
   // Split the file text into an array of lines
 
   // Get the text between the starting and ending positions

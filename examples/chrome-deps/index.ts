@@ -3,7 +3,7 @@ import chroma from "chroma-js";
 import FA2Layout from "graphology-layout-forceatlas2/worker";
 import forceAtlas2 from "graphology-layout-forceatlas2";
 import * as Surreal from './Surreal';
-import { graph } from "./Graph";
+import { graph, diffGraph } from "./Graph";
 import { downscaleConst, getHeatMapColor, renderer } from "./Renderer";
 import { graph2Object, graph2diffFull, object2Graph, tree2Graph } from "./Graph";
 import { searchInputs, setSearchQuery } from "./Search";
@@ -74,16 +74,16 @@ const removeParent = (elem: Node) => {
 
 let layout: FA2Layout;
 
-const appendButton = document.getElementById("appendButton") as HTMLButtonElement;
-appendButton.onclick = (e) => {
-  const v = diffEditor.getValue();
-  try {
-    const obj = JSON.parse(v);
-    start(obj);
-  } catch (e) {
-    alert("Invalid JSON");
-  }
-};
+// const appendButton = document.getElementById("appendButton") as HTMLButtonElement;
+// appendButton.onclick = (e) => {
+//   const v = diffEditor.getValue();
+//   try {
+//     const obj = JSON.parse(v);
+//     start(obj);
+//   } catch (e) {
+//     alert("Invalid JSON");
+//   }
+// };
 
 const subtractButton = document.getElementById("subtractButton") as HTMLButtonElement;
 subtractButton.onclick = (e) => {
@@ -210,9 +210,10 @@ document.getElementById("plotButton").dispatchEvent(new Event("click"));
 
 Surreal.surrealConnect();
 
-export async function start(dataRaw, append = true, refresh = false) {
+export async function start(dataRaw, dataDiff, append = true, refresh = false) {
   // object2Graph(dataRaw, graph, append);
   tree2Graph(dataRaw, graph, refresh);
+  tree2Graph(dataDiff, diffGraph, refresh);
   graph2diffFull(graph);
 
   // ReachableCounts.reachableCounts.clear();

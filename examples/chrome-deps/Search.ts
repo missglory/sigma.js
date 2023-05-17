@@ -112,7 +112,7 @@ export function setSearchQuery(query: string, selection: number) {
     })
     .filter((n) => pattern.test(n.label) || pattern.test(n.id));
   if (suggestions.length === 0) {
-    const finds = findHolesByRegex(fileText, pattern);
+    const finds = findHolesByRegex(fileText[0], pattern);
     suggestions = graph
       .nodes()
       .map((n) => {
