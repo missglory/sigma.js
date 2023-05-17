@@ -102,35 +102,41 @@ export function applyEditorBackground(editr, color) {
   decorations = editr.deltaDecorations(decorations, [background]);
 }
 
-revEditors[0].onDidChangeModelContent(async (event) => {
-    const editorContent = revEditors[0].getModel().getValue();
+revEditors.forEach((ed) => {
+  ed.onDidChangeModelContent(async (event) => {
+    const editorContent = ed.getModel().getValue();
     try {
-        const response = await gitRevParse(editorContent);
+      const response = await gitRevParse(editorContent);
 
-        if (!response.success) {
-          applyEditorBackground(revEditors[0], "editorErrorDecoration");
-        } else {
-          applyEditorBackground(revEditors[0], "editorSuccessDecoration");
-        }
+      if (!response.success) {
+        applyEditorBackground(ed, "editorErrorDecoration");
+      } else {
+        applyEditorBackground(ed, "editorSuccessDecoration");
+      }
     } catch (error) {
-        console.error(error);
-        applyEditorBackground(revEditors[0], "editorErrorDecoration");
+      console.error(error);
+      applyEditorBackground(ed, "editorErrorDecoration");
     }
-});
+  });
+})
+
+revEditors[0].getModel().setValue("HEAD");
+revEditors[1].getModel().setValue("HEAD~1");
+
 
 async function gitRevParse(revArg) {
-    const response = await fetch(`http://localhost:5000/git?rev=${encodeURIComponent(revArg)}`);
+  const response = await fetch(`http://localhost:5000/git?rev=${encodeURIComponent(revArg)}`);
 
-    if (!response.ok) {
-        const message = `An error has occurred: ${response.status}`;
-        throw new Error(message);
-    }
+  if (!response.ok) {
+    const message = `An error has occurred: ${response.status}`;
+    throw new Error(message);
+  }
 
-    const data = await response.json();
-    if (!data.success) {
-        console.log(`Error: ${data.message}`);
-    } else {
-        console.log(`Success: ${data.message}`);
-    }
-    return data;
+  const data = await response.json();
+  // if (!data.success) {
+  //   console.log(`Error: ${data.message}`);
+  // } else {
+  //   console.log(`Success: ${data.message}`);
+  // }
+  return data;
 }
