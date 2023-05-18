@@ -2,16 +2,15 @@ import chroma from "chroma-js";
 
 import FA2Layout from "graphology-layout-forceatlas2/worker";
 import forceAtlas2 from "graphology-layout-forceatlas2";
-import * as Surreal from './Surreal';
-import { graph, diffGraph } from "./Graph";
+import * as Surreal from "./Surreal";
 import { downscaleConst, getHeatMapColor, renderer } from "./Renderer";
-import { graph2Object, graph2diffFull, object2Graph, tree2Graph } from "./Graph";
+import * as Graph from "./Graph";
 import { searchInputs, setSearchQuery } from "./Search";
 import { appendText, diffEditor } from "./Editors";
 import { state } from "./State";
 import { fileButton } from "./LoadFile";
 import * as Plotly from "./Plotly";
-
+import * as GraphMerge from "./GraphMerge";
 
 // Promise.all([fetch("./chrome_deps.json")])
 //   .then((rs) =>
@@ -29,9 +28,7 @@ fileButton.dispatchEvent(new Event("click"));
 
 const searchSuggestions = document.getElementById("suggestions") as HTMLDataListElement;
 
-
 const layers = new Set([0]);
-
 
 let ctrlPressed = false;
 window.addEventListener("keydown", (e) => {
@@ -71,7 +68,6 @@ const removeParent = (elem: Node) => {
   elem.parentNode.parentNode.removeChild(elem.parentNode);
 };
 
-
 let layout: FA2Layout;
 
 // const appendButton = document.getElementById("appendButton") as HTMLButtonElement;
@@ -88,7 +84,7 @@ let layout: FA2Layout;
 const subtractButton = document.getElementById("subtractButton") as HTMLButtonElement;
 subtractButton.onclick = (e) => {
   const v = diffEditor.getValue();
-  const cur = graph2Object(graph);
+  const cur = Graph.graph2Object(Graph.graph);
   // let obj;
   let res = {};
   try {
@@ -129,10 +125,10 @@ function toggleFA2Layout() {
 }
 
 document.getElementById("resetBtn").onclick = (e) => {
-  graph.forEachNode((node) => {
+  Graph.graph.forEachNode((node) => {
     const c = chroma.random()._rgb;
-    graph.setNodeAttribute(node, "x", c[0] * downscaleConst);
-    graph.setNodeAttribute(node, "y", c[1] * downscaleConst);
+    Graph.graph.setNodeAttribute(node, "x", c[0] * downscaleConst);
+    Graph.graph.setNodeAttribute(node, "y", c[1] * downscaleConst);
   });
 };
 
@@ -200,22 +196,34 @@ for (const el of document.getElementsByClassName("collapseButton")) {
 }
 
 document.getElementById("plotButton").addEventListener("click", (e) => {
-	// console.log("tst")
-	// document.getElementById("sigma-container").style.display = "none";
-	// document.getElementById("plot").style.display = "block";
-	Plotly.drawHistogram();
+  // console.log("tst")
+  // document.getElementById("sigma-container").style.display = "none";
+  // document.getElementById("plot").style.display = "block";
+  Plotly.drawHistogram();
 });
 
 document.getElementById("plotButton").dispatchEvent(new Event("click"));
 
 Surreal.surrealConnect();
 
+const asyncStartBlock = async (dataRaw, dataDiff, refresh) => {
+  Graph.tree2Graph(dataDiff, Graph.diffGraph, refresh, Graph.diffGraphRoots);
+  Graph.tree2Graph(dataRaw, Graph.graph, refresh, Graph.graphRoots);
+};
+
 export async function start(dataRaw, dataDiff, append = true, refresh = false) {
   // object2Graph(dataRaw, graph, append);
-  tree2Graph(dataRaw, graph, refresh);
-  tree2Graph(dataDiff, diffGraph, refresh);
-  graph2diffFull(graph);
-
+  await asyncStartBlock(dataRaw, dataDiff, refresh);
+  GraphMerge.mergeGraphsByAttrs(
+    Graph.diffGraph,
+    Graph.graph,
+    Graph.graph
+    // Graph.graphRoots[0],
+    // Graph.diffGraphRoots[0],
+    // Graph.graph,
+  );
+  // Graph.graph = mergedGraph;
+  Graph.graph2diffFull(Graph.graph);
   // ReachableCounts.reachableCounts.clear();
   // ReachableCounts.countReachableNodes(graph)
   // ReachableCounts.assignReachableCounts(graph);
@@ -226,30 +234,33 @@ export async function start(dataRaw, dataDiff, append = true, refresh = false) {
     const isRunning = layout?.isRunning() ?? true;
     layout?.kill();
     const v = parseFloat(document.getElementById("layoutInput")["value"]);
-    const sensibleSettings = Object.assign(forceAtlas2.inferSettings(graph),
+    const sensibleSettings = Object.assign(
+      forceAtlas2.inferSettings(Graph.graph),
       // { gravity: 0.1 }
-      { gravity: v ?? 0.1 }
+      { gravity: v ?? 0.1 },
       // {}
     );
-    layout = new FA2Layout(graph, {
+    layout = new FA2Layout(Graph.graph, {
       settings: sensibleSettings,
     });
-    if (isRunning) { layout.start(); }
+    if (isRunning) {
+      layout.start();
+    }
   }
   fa2Button.onclick = toggleFA2Layout;
-
 
   document.getElementById("layoutInput").oninput = (e) => {
     try {
       const v = parseFloat((e.target as HTMLInputElement).value);
-      const sensibleSettings = Object.assign(forceAtlas2.inferSettings(graph),
+      const sensibleSettings = Object.assign(
+        forceAtlas2.inferSettings(Graph.graph),
         // { gravity: 0.1 }
-        { gravity: v ?? 0.1 }
+        { gravity: v ?? 0.1 },
         // {}
       );
-      layout?.kill()
-      layout = new FA2Layout(graph, {
-        settings: sensibleSettings
+      layout?.kill();
+      layout = new FA2Layout(Graph.graph, {
+        settings: sensibleSettings,
       });
       // if (v == 0) {
       //   return;
@@ -259,18 +270,20 @@ export async function start(dataRaw, dataDiff, append = true, refresh = false) {
       // if (state.
       layout.start();
       renderer.refresh();
-    } catch (e) { }
+    } catch (e) {}
   };
 
   document.getElementById("inferInput").oninput = (e) => {
     try {
-
-      const v = Math.max(0, parseInt((e.target as HTMLInputElement).value === "" ? "0" : (e.target as HTMLInputElement).value) ?? 0);
+      const v = Math.max(
+        0,
+        parseInt((e.target as HTMLInputElement).value === "" ? "0" : (e.target as HTMLInputElement).value) ?? 0,
+      );
       const inferred = forceAtlas2.inferSettings(v);
       const isRunning = layout.isRunning();
-      layout?.kill()
-      layout = new FA2Layout(graph, {
-        settings: inferred
+      layout?.kill();
+      layout = new FA2Layout(Graph.graph, {
+        settings: inferred,
       });
       // if (v == 0) {
       //   return;
@@ -278,18 +291,18 @@ export async function start(dataRaw, dataDiff, append = true, refresh = false) {
       // scaleMult = v;
       // renderer.refresh();
       // if (state.
-      if (isRunning) { layout.start(); }
+      if (isRunning) {
+        layout.start();
+      }
       renderer.refresh();
-    } catch (e) { }
-
+    } catch (e) {}
   };
 
   // Feed the datalist autocomplete values:
-  searchSuggestions.innerHTML = graph
+  searchSuggestions.innerHTML = Graph.graph
     .nodes()
-    .map((node) => `<option value="${graph.getNodeAttribute(node, "label")}"></option>`)
+    .map((node) => `<option value="${Graph.graph.getNodeAttribute(node, "label")}"></option>`)
     .join("\n");
-
 
   // const scaryFunction = (node) => {
   //   const boundarySet = new Set([node]);
@@ -324,8 +337,8 @@ export async function start(dataRaw, dataDiff, append = true, refresh = false) {
         state.selected[index].suggest !== undefined
           ? state.selected[index].suggest.size
           : state.selected[index].selected !== undefined
-            ? 1
-            : 0
+          ? 1
+          : 0
       ).toString();
     });
   });

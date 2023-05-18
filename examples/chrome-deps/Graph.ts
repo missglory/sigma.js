@@ -3,9 +3,12 @@ import chroma from "chroma-js";
 import { appendText, graphEditor } from "./Editors";
 import { v4 as uuidv4 } from "uuid";
 
-export const graph = new graphology.DirectedGraph({});
-export const diffGraph = new graphology.DirectedGraph({});
-export let graphRoot;
+export let graph = new graphology.DirectedGraph({});
+export let diffGraph = new graphology.DirectedGraph({});
+export let diffGraph2 = new graphology.DirectedGraph({});
+export const graphRoots = [];
+export const diffGraphRoots = [];
+
 import { downscaleConst, renderer } from "./Renderer";
 import * as Ranges from "./Ranges";
 import { fileText } from "./LoadFile";
@@ -24,7 +27,7 @@ function polar2Cartesian(angle, distance) {
 
 let _normalize = 0;
 
-const tree2GraphRecursion = (tree, graph, parentId = null, lvl, props = {}) => {
+const tree2GraphRecursion = (tree, graph, parentId = null, lvl, order = 0, props = {}, graphRoots) => {
   // if (lvl > 2) { return; }
   const nodeId = uuidv4();
   const angle = (tree.location.endOffset + tree.location.offset) / (2 * _normalize);
@@ -42,19 +45,25 @@ const tree2GraphRecursion = (tree, graph, parentId = null, lvl, props = {}) => {
     ...tree,
     children: undefined,
     label: tree.kind.replace("CursorKind.", ""),
-    gaps: rangeFinder.getHoles(),
     ...props,
+    level: lvl,
+    order: order,
+    gaps: rangeFinder.getHoles(),
     // gapLines: gapLines,
   });
 
   // If there's a parent, add an edge between the parent and the current node
   if (parentId !== null) {
     graph.addEdge(parentId, nodeId);
+  } else {
+    graphRoots.push(nodeId);
   }
 
   // If the current node has children, recursively process them
+  let ord = 0
   if (Array.isArray(tree.children)) {
-    tree.children.forEach((child) => tree2GraphRecursion(child, graph, nodeId, lvl + 1));
+    tree.children.forEach((child) => tree2GraphRecursion(child, graph, nodeId, lvl + 1, ord, {}, graphRoots));
+    ord++;
   }
 
   // const gapLines = gaps.map((g) => {
@@ -71,23 +80,27 @@ const tree2GraphRecursion = (tree, graph, parentId = null, lvl, props = {}) => {
         endOffset: g[1],
       },
       children: [],
+      // level: lvl.toString(),
+      // order: order.toString()
+      // order: "100000",
     };
   });
   if (unparsedChildren.length === 1) {
     return;
   }
+  ord += 10000;
   unparsedChildren.forEach((ch) => {
-    tree2GraphRecursion(ch, graph, nodeId, lvl + 1, { color: '#774' });
+    tree2GraphRecursion(ch, graph, nodeId, lvl + 1, ord, { color: '#774' }, graphRoots);
+    order++;
   });
 };
 
-export const tree2Graph = async (tree, graph, refresh = false) => {
+export const tree2Graph = async (tree, graph, refresh = false, graphRoots) => {
   if (refresh) {
     graph.clear();
     _normalize = tree.location.endOffset - tree.location.offset;
-    graphRoot = tree;
   }
-  tree2GraphRecursion(tree, graph, null, 0);
+  tree2GraphRecursion(tree, graph, null, 0, 0, {}, graphRoots);
   renderer.refresh();
   return graph;
 };

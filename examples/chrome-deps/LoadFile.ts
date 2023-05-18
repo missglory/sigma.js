@@ -99,7 +99,7 @@ fileButton.addEventListener('click', async () => {
         return fileAST.contents;
         // graphs.push(fileAST.contents);
       }));
-        // console.log(fileAST.contents);
+      console.log(graphs);
       // }));
       start(graphs[0], graphs[1], true, true);
       console.log("file AST")

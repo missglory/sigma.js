@@ -3,7 +3,7 @@ import { renderer } from "./Renderer";
 import { state, updateStateSelection } from "./State";
 import { appendText, plainParams, searchParams } from "./Editors";
 import { assignPath } from "./Paths";
-import { graph, graphRoot } from "./Graph";
+import { graph, graphRoots, diffGraph, diffGraphRoots } from "./Graph";
 import { Coordinates } from "sigma/types";
 import * as Ranges from "./Ranges";
 import { fileText } from "./LoadFile";
