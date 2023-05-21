@@ -1,7 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as graphology from "graphology";
+import * as immutable from "immutable";
 import * as chroma from "chroma-js";
+import { graph } from "./Graph";
+import { TwoWayMultiMap } from "./TwoWayMultiMap";
+import * as Util from "./Util";
+import * as Equality from "./Equality";
+
 const handleQueue = (
   graph: graphology.DirectedGraph,
   queue: string[],
@@ -40,6 +46,8 @@ interface NodeAttributes {
   order?: number;
   color?: string;
   spelling?: string;
+  location?: object;
+  location2?: object;
 }
 
 export function getNodeIndex(graph: graphology.DirectedGraph): Record<string, any> {
@@ -77,21 +85,25 @@ export function getNodeIndex(graph: graphology.DirectedGraph): Record<string, an
   return result;
 }
 
-export function mergeGraphsByAttrs(
+export async function mergeGraphsByAttrs(
   graph1: graphology.DirectedGraph,
   graph2: graphology.DirectedGraph,
   mergedGraph: graphology.DirectedGraph,
 ) {
   const nodeIndex1 = getNodeIndex(graph1);
   const nodeIndex2 = getNodeIndex(graph2);
+  // const mappings: Map<string, string> = new Map();
+  const mappings = new TwoWayMultiMap();
 
   // const mergedGraph = new graphology.DirectedGraph();
 
   // Traverse nodes in graph1
+  const ni1 = Object.entries(nodeIndex1);
   for (const [level, levelNodes1] of Object.entries(nodeIndex1)) {
     const levelNum = parseInt(level, 10);
-
+    const li1 = Object.entries(levelNodes1);
     for (const [kind, kindNodes1] of Object.entries(levelNodes1)) {
+      const ki1 =  Object.entries(kindNodes1);
       for (const [order, nodes1] of Object.entries(kindNodes1)) {
         const orderNum = parseInt(order, 10);
 
@@ -99,15 +111,37 @@ export function mergeGraphsByAttrs(
 
         // Add unmatched nodes from graph1 to graph2
         // const unmatchedNodes = nodes1.filter((node1) => !nodes2.includes(node1));
-        const unmatchedNodes = nodes1.filter((node1) => nodes2.length === 0);
+        const unmatchedNodes = nodes1.filter((node1) => {
+          // let n2 = nodes2;
+          // while (!n2.includes(root2)) {
+
+          // }
+          if (nodes2.length === 0) {
+            // mappings.set(node1, "");
+            return true;
+          }
+
+          for (const n2 of nodes2) {
+            // if (!Equality.compareNodeOrders(graph1, graph2, node1, n2)) {
+            //   continue;
+            // }
+
+            mappings.set(n2, node1);
+            mergedGraph.setNodeAttribute(n2, "location2", graph1.getNodeAttribute(node1, "location"));
+          }
+          if (!mappings.hasValue(node1)) {
+            return true;
+          }
+          return false;
+        });
 
         unmatchedNodes.forEach((unmatchedNode) => {
           const attributes: NodeAttributes = {
             ...graph1.getNodeAttributes(unmatchedNode),
             color: "#0f0",
           };
+          attributes.location2 = attributes.location;
 
-          // Increment order of nodes in graph2 with the same level and higher order
           for (
             let higherOrder = orderNum;
             higherOrder <= Object.keys(nodeIndex2[level]?.[kind] || {}).length;
@@ -122,13 +156,58 @@ export function mergeGraphsByAttrs(
           }
 
           const mergedNode = mergedGraph.addNode(unmatchedNode, attributes);
+          mergedGraph.removeNodeAttribute(unmatchedNode, "location");
+          mappings.set(unmatchedNode, unmatchedNode);
 
-          // Copy edges from graph1 to mergedGraph
-          // graph1.forEachOutEdge(unmatchedNode, (edge, targetNode) => {
-          //   mergedGraph.addEdge(mergedNode, targetNode);
-          // });
+          // console.log(graph1.inNeighbors(unmatchedNode).length);
+          graph1.forEachInNeighbor(unmatchedNode, (node) => {
+            const mapping = mappings.get(node);
+            console.log(mapping.size);
+            console.log("parent DFS: ", graph1.getNodeAttributes(node).dfsOrder);
+            // console.log("mergeGraphByAttrs::\n");
+            // console.log("")
+            // Util.logFileLineFunction();
+            // console.log(mapping.forEach)
+            mapping.forEach(m => {
+              console.log("dfsOrd: ", graph2.getNodeAttributes(m).dfsOrder);
+            })
+            if (!mapping) {
+              return;
+            }
+            // const inN = graph1.inNeighbors(node);
+            // console.log("INN SIZE " + inN.length);
+            // const p1 = inN[0];
+            mapping.forEach(mapp => {
+              // if (!mergedGraph.hasEdge(unmatchedNode, mapp)) {
+              //   mergedGraph.addEdge(unmatchedNode, mapp);
+              //   return;
+              // }
+              // const p2 = graph2.inNeighbors(mapp);
+              // console.log("P2 size "+ p2.length);
+              // if (!p2.includes(p1) && !mappings.includes(p2, p1)) {
+              //   return;
+              
+              // console.log(graph2.inNeighbors(mapp).length);
+              console.log("sim score: ", Equality.similarityScore(graph1, graph2, node, mapp as string));
+              console.log("child score: ", Equality.similarityScore(graph1, graph2, unmatchedNode, mapp as string));
+
+              // }
+              // if(Equality.compareNodeOrders(graph1, graph2, node, mapp)) {
+              //   return;
+              // }
+
+              mergedGraph.mergeEdge(unmatchedNode, mapp, {});
+              return;
+            })
+          });
         });
       }
+    }
+  }
+
+  for (const n2 of graph2.nodes()) {
+    if (!mappings.hasKey(n2)) {
+      mergedGraph.mergeNode(n2, { color: "#f00" });
     }
   }
 

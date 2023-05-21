@@ -11,6 +11,7 @@ import { state } from "./State";
 import { fileButton } from "./LoadFile";
 import * as Plotly from "./Plotly";
 import * as GraphMerge from "./GraphMerge";
+import * as GraphMerge2 from "./GraphMerge2";
 
 // Promise.all([fetch("./chrome_deps.json")])
 //   .then((rs) =>
@@ -214,7 +215,7 @@ const asyncStartBlock = async (dataRaw, dataDiff, refresh) => {
 export async function start(dataRaw, dataDiff, append = true, refresh = false) {
   // object2Graph(dataRaw, graph, append);
   await asyncStartBlock(dataRaw, dataDiff, refresh);
-  GraphMerge.mergeGraphsByAttrs(
+  await GraphMerge.mergeGraphsByAttrs(
     Graph.diffGraph,
     Graph.graph,
     Graph.graph
@@ -222,6 +223,8 @@ export async function start(dataRaw, dataDiff, append = true, refresh = false) {
     // Graph.diffGraphRoots[0],
     // Graph.graph,
   );
+  // GraphMerge2.merge(Graph.diffGraph, Graph.graph, Graph.diffGraphRoots[0]);
+
   // Graph.graph = mergedGraph;
   Graph.graph2diffFull(Graph.graph);
   // ReachableCounts.reachableCounts.clear();

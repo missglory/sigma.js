@@ -27,6 +27,7 @@ function polar2Cartesian(angle, distance) {
 
 let _normalize = 0;
 
+let g_order = 0;
 const tree2GraphRecursion = (tree, graph, parentId = null, lvl, order = 0, props = {}, graphRoots) => {
   // if (lvl > 2) { return; }
   const nodeId = uuidv4();
@@ -47,7 +48,7 @@ const tree2GraphRecursion = (tree, graph, parentId = null, lvl, order = 0, props
     label: tree.kind.replace("CursorKind.", ""),
     ...props,
     level: lvl,
-    order: order,
+    dfsOrder: order,
     gaps: rangeFinder.getHoles(),
     // gapLines: gapLines,
   });
@@ -60,10 +61,13 @@ const tree2GraphRecursion = (tree, graph, parentId = null, lvl, order = 0, props
   }
 
   // If the current node has children, recursively process them
-  let ord = 0
+  // let ord = 0
+  g_order++;
+
+  tree.children.sort((a, b) => a.location.offset - b.location.offset);
   if (Array.isArray(tree.children)) {
-    tree.children.forEach((child) => tree2GraphRecursion(child, graph, nodeId, lvl + 1, ord, {}, graphRoots));
-    ord++;
+    // tree.children.forEach((child) => tree2GraphRecursion(child, graph, nodeId, lvl + 1, ord, {}, graphRoots));
+    tree.children.forEach((child) => tree2GraphRecursion(child, graph, nodeId, lvl + 1, g_order, {}, graphRoots));
   }
 
   // const gapLines = gaps.map((g) => {
@@ -80,6 +84,7 @@ const tree2GraphRecursion = (tree, graph, parentId = null, lvl, order = 0, props
         endOffset: g[1],
       },
       children: [],
+      // spelling: "NOT_PARSED",
       // level: lvl.toString(),
       // order: order.toString()
       // order: "100000",
@@ -88,10 +93,10 @@ const tree2GraphRecursion = (tree, graph, parentId = null, lvl, order = 0, props
   if (unparsedChildren.length === 1) {
     return;
   }
-  ord += 10000;
+  // g_order += 10000;
   unparsedChildren.forEach((ch) => {
-    tree2GraphRecursion(ch, graph, nodeId, lvl + 1, ord, { color: '#774' }, graphRoots);
-    order++;
+    tree2GraphRecursion(ch, graph, nodeId, lvl + 1, g_order, { color: '#774' }, graphRoots);
+    // g_order++;
   });
 };
 
@@ -100,6 +105,7 @@ export const tree2Graph = async (tree, graph, refresh = false, graphRoots) => {
     graph.clear();
     _normalize = tree.location.endOffset - tree.location.offset;
   }
+  g_order = 0;
   tree2GraphRecursion(tree, graph, null, 0, 0, {}, graphRoots);
   renderer.refresh();
   return graph;
@@ -235,5 +241,5 @@ export const graph2diff = async (graph: graphology.DirectedGraph) => {
 
 export const graph2diffFull = async (graph: graphology.DirectedGraph) => {
   const v = await graph2JSON(graph);
-  appendText(v, graphEditor.getModel());
+  // appendText(v, graphEditor.getModel());
 };

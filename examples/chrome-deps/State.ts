@@ -41,29 +41,37 @@ export const updateStateSelection = async (diff, selectionId) => {
   if (diff["selected"] !== undefined) {
     const attrs = graph.getNodeAttributes(state.selected[selectionId].selected);
     // delete attrs.code;
-    const loc = attrs.location;
-    const file = LoadFile.fileText[0];
+    const loc = attrs.location !== undefined ? attrs.location : attrs.location2;
+    const file = attrs.location !== undefined ? LoadFile.fileText[0] : LoadFile.fileText[1];
     if (loc.line === undefined) {
       //   Object.assign(loc, {
       //     ...Utils.getLineColumn(fileText, loc.offset),
       //     // ...Utils.getLineColumn(loc.endOffset, fileText),
       //   });
-      appendText(JSON.stringify(attrs, null, 1), nodeEditor.getModel());
-      appendText(Ranges.getTextSliceByByteOffset(file, loc.offset, loc.endOffset), cppEditor.getModel());
-      const { line, column } = Ranges.getLineColumn(file, loc.offset);
-      const end = Ranges.getLineColumn(file, loc.endOffset);
-      appendText(Ranges.getLineNumbersString(line, end.line), cppLinesEditor.getModel());
+      try {
+        appendText(JSON.stringify(attrs, null, 1), nodeEditor.getModel());
+        appendText(Ranges.getTextSliceByByteOffset(file, loc.offset, loc.endOffset), cppEditor.getModel());
+        const { line, column } = Ranges.getLineColumn(file, loc.offset);
+        const end = Ranges.getLineColumn(file, loc.endOffset);
+        appendText(Ranges.getLineNumbersString(line, end.line), cppLinesEditor.getModel());
+      } catch (e) {
+        console.error("error\n", file, loc);
+      }
     } else {
-      // graph.setNodeAttribute(state.selected[selectionId].selected, "code", );
-      const codeAndLines = Ranges.getTextBetweenPositions(loc.line, loc.column, loc.endLine, loc.endColumn, file);
-      appendText(JSON.stringify(attrs, null, 1), nodeEditor.getModel());
-      // }
-      let codeRaw = codeAndLines.text;
-      // if (codeRaw.length > 3) {
-      //   codeRaw = codeRaw.substring(1, codeRaw.length - 1);
-      // }
-      appendText(codeRaw, cppEditor.getModel());
-      appendText(codeAndLines.lineNumbers.replaceAll("'", "").replaceAll(",", "\n"), cppLinesEditor.getModel());
+      try {
+        // graph.setNodeAttribute(state.selected[selectionId].selected, "code", );
+        appendText(JSON.stringify(attrs, null, 1), nodeEditor.getModel());
+        // }
+        // if (codeRaw.length > 3) {
+        //   codeRaw = codeRaw.substring(1, codeRaw.length - 1);
+        // }
+        const codeAndLines = Ranges.getTextBetweenPositions(loc.line, loc.column, loc.endLine, loc.endColumn, file);
+        let codeRaw = codeAndLines.text;
+        appendText(codeRaw, cppEditor.getModel());
+        appendText(codeAndLines.lineNumbers.replaceAll("'", "").replaceAll(",", "\n"), cppLinesEditor.getModel());
+      } catch (e) {
+        console.error("error\n", file, loc);
+      }
     }
   }
 };

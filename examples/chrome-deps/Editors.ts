@@ -89,6 +89,19 @@ export const graphEditor = editor.create(document.getElementById("graphContainer
   ...jsonParams,
 });
 
+export const graphEditor2 = editor.create(document.getElementById("graphContainer2"), {
+  ...jsonParams,
+});
+
+export const graphDiffEditor = editor.createDiffEditor(document.getElementById("graphDiffContainer"), {
+  ...jsonParams,
+});
+
+graphDiffEditor.setModel({
+  original: graphEditor.getModel(),
+  modified: graphEditor2.getModel(),
+})
+
 export const nodeEditor = editor.create(document.getElementById("nodeContainer"), {
   ...jsonParams,
 });
