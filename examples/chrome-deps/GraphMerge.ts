@@ -40,25 +40,14 @@ const handleQueue = (
   }
 };
 
-interface NodeAttributes {
-  level?: number;
-  kind?: string;
-  order?: number;
-  color?: string;
-  spelling?: string;
-  location?: object;
-  location2?: object;
-}
-
 export function getNodeIndex(graph: graphology.DirectedGraph): Record<string, any> {
   const nodeIndex: Record<string, any> = {};
 
   // Initialize nodeIndex
   graph.forEachNode((node) => {
-    const nodeData: NodeAttributes = graph.getNodeAttributes(node);
+    const nodeData: Equality.NodeAttributes = graph.getNodeAttributes(node);
     const level = nodeData && nodeData.level !== undefined ? nodeData.level : -1;
-    const spelling = nodeData && nodeData.spelling !== undefined ? nodeData.spelling : "";
-    const kind = (nodeData && nodeData.kind !== undefined ? nodeData.kind : "") + spelling;
+    const kind = Equality.signature(nodeData);
     const order = nodeData && nodeData.order !== undefined ? nodeData.order : -1;
 
     nodeIndex[node] = { level, kind, order };
@@ -103,7 +92,7 @@ export async function mergeGraphsByAttrs(
     const levelNum = parseInt(level, 10);
     const li1 = Object.entries(levelNodes1);
     for (const [kind, kindNodes1] of Object.entries(levelNodes1)) {
-      const ki1 =  Object.entries(kindNodes1);
+      const ki1 = Object.entries(kindNodes1);
       for (const [order, nodes1] of Object.entries(kindNodes1)) {
         const orderNum = parseInt(order, 10);
 
@@ -122,9 +111,12 @@ export async function mergeGraphsByAttrs(
           }
 
           for (const n2 of nodes2) {
-            // if (!Equality.compareNodeOrders(graph1, graph2, node1, n2)) {
-            //   continue;
-            // }
+            // console.log("sim score: ", Equality.similarityScore(graph1, graph2, node1, n2));
+            // console.log("par score: ", Equality.similarityScore(graph1, graph2, unmatchedNode, mapp as string));
+
+            if (!Equality.compareNodeOrders(graph1, graph2, node1, n2)) {
+              continue;
+            }
 
             mappings.set(n2, node1);
             mergedGraph.setNodeAttribute(n2, "location2", graph1.getNodeAttribute(node1, "location"));
@@ -136,7 +128,7 @@ export async function mergeGraphsByAttrs(
         });
 
         unmatchedNodes.forEach((unmatchedNode) => {
-          const attributes: NodeAttributes = {
+          const attributes: Equality.NodeAttributes = {
             ...graph1.getNodeAttributes(unmatchedNode),
             color: "#0f0",
           };
@@ -163,21 +155,21 @@ export async function mergeGraphsByAttrs(
           graph1.forEachInNeighbor(unmatchedNode, (node) => {
             const mapping = mappings.get(node);
             console.log(mapping.size);
-            console.log("parent DFS: ", graph1.getNodeAttributes(node).dfsOrder);
+            console.log("parent DFS: ", graph1.getNodeAttributes(node));
             // console.log("mergeGraphByAttrs::\n");
             // console.log("")
             // Util.logFileLineFunction();
             // console.log(mapping.forEach)
-            mapping.forEach(m => {
-              console.log("dfsOrd: ", graph2.getNodeAttributes(m).dfsOrder);
-            })
+            mapping.forEach((m) => {
+              console.log("dfsOrd: ", graph2.getNodeAttributes(m));
+            });
             if (!mapping) {
               return;
             }
             // const inN = graph1.inNeighbors(node);
             // console.log("INN SIZE " + inN.length);
             // const p1 = inN[0];
-            mapping.forEach(mapp => {
+            mapping.forEach((mapp) => {
               // if (!mergedGraph.hasEdge(unmatchedNode, mapp)) {
               //   mergedGraph.addEdge(unmatchedNode, mapp);
               //   return;
@@ -186,19 +178,25 @@ export async function mergeGraphsByAttrs(
               // console.log("P2 size "+ p2.length);
               // if (!p2.includes(p1) && !mappings.includes(p2, p1)) {
               //   return;
-              
-              // console.log(graph2.inNeighbors(mapp).length);
-              console.log("sim score: ", Equality.similarityScore(graph1, graph2, node, mapp as string));
-              console.log("child score: ", Equality.similarityScore(graph1, graph2, unmatchedNode, mapp as string));
 
-              // }
-              // if(Equality.compareNodeOrders(graph1, graph2, node, mapp)) {
+              // console.log(graph2.inNeighbors(mapp).length);
+              const simScore = Equality.similarityScore(graph1, graph2, node, mapp as string);
+              console.log("sim score: ", simScore);
+              if (!simScore) {
+                return;
+              }
+
+              // console.log("par score: ", Equality.similarityScore(graph1, graph2, unmatchedNode, mapp as string));
+              
+
+              // if (!Equality.compareNodeOrders(graph1, graph2, node, mapp as string)) {
               //   return;
               // }
 
-              mergedGraph.mergeEdge(unmatchedNode, mapp, {});
+              // mergedGraph.mergeEdge(unmatchedNode, mapp, {});
+              mergedGraph.mergeEdge(mapp, unmatchedNode, {});
               return;
-            })
+            });
           });
         });
       }
