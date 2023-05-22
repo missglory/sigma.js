@@ -2,6 +2,7 @@ import * as graphology from "graphology";
 import chroma from "chroma-js";
 import { appendText, graphEditor } from "./Editors";
 import { v4 as uuidv4 } from "uuid";
+import * as Palette from "./Palette";
 
 export let graph = new graphology.DirectedGraph({});
 export let diffGraph = new graphology.DirectedGraph({});
@@ -45,11 +46,13 @@ const tree2GraphRecursion = (tree, graph, parentId = null, lvl, order = 0, props
     size: Math.pow(tree.location.endOffset - tree.location.offset + 1, 0.15),
     ...tree,
     children: undefined,
-    label: tree.kind.replace("CursorKind.", ""),
+    // label: tree.kind.replace("CursorKind.", ""),
+    label: tree.nodeType + " " + tree.spelling,
     ...props,
     level: lvl,
     dfsOrder: order,
     gaps: rangeFinder.getHoles(),
+    color: Palette.palette.addColor(tree.kind),
     // gapLines: gapLines,
   });
 
@@ -107,6 +110,7 @@ export const tree2Graph = async (tree, graph, refresh = false, graphRoots) => {
   }
   g_order = 0;
   tree2GraphRecursion(tree, graph, null, 0, 0, {}, graphRoots);
+  console.log(Palette.palette.getColorUsageHistogram());
   renderer.refresh();
   return graph;
 };

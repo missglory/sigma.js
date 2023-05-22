@@ -128,9 +128,12 @@ export async function mergeGraphsByAttrs(
         });
 
         unmatchedNodes.forEach((unmatchedNode) => {
+          const attr = graph1.getNodeAttributes(unmatchedNode);
           const attributes: Equality.NodeAttributes = {
-            ...graph1.getNodeAttributes(unmatchedNode),
-            color: "#0f0",
+            ...attr,
+            // color: "#0f0",
+            color: chroma.mix(attr.color, "#0f0", 0.5).hex(),
+            // mergedGraph.updateNodeAttribute(n2, "color", c => chroma.mix(c, "#f00", 0.5));
           };
           attributes.location2 = attributes.location;
 
@@ -154,15 +157,15 @@ export async function mergeGraphsByAttrs(
           // console.log(graph1.inNeighbors(unmatchedNode).length);
           graph1.forEachInNeighbor(unmatchedNode, (node) => {
             const mapping = mappings.get(node);
-            console.log(mapping.size);
-            console.log("parent DFS: ", graph1.getNodeAttributes(node));
+            // console.log(mapping.size);
+            // console.log("parent DFS: ", graph1.getNodeAttributes(node));
             // console.log("mergeGraphByAttrs::\n");
             // console.log("")
             // Util.logFileLineFunction();
             // console.log(mapping.forEach)
-            mapping.forEach((m) => {
-              console.log("dfsOrd: ", graph2.getNodeAttributes(m));
-            });
+            // mapping.forEach((m) => {
+            //   console.log("dfsOrd: ", graph2.getNodeAttributes(m));
+            // });
             if (!mapping) {
               return;
             }
@@ -180,11 +183,11 @@ export async function mergeGraphsByAttrs(
               //   return;
 
               // console.log(graph2.inNeighbors(mapp).length);
-              const simScore = Equality.similarityScore(graph1, graph2, node, mapp as string);
-              console.log("sim score: ", simScore);
-              if (!simScore) {
-                return;
-              }
+              // const simScore = Equality.similarityScore(graph1, graph2, node, mapp as string);
+              // console.log("sim score: ", simScore);
+              // if (!simScore) {
+                // return;
+              // }
 
               // console.log("par score: ", Equality.similarityScore(graph1, graph2, unmatchedNode, mapp as string));
               
@@ -205,7 +208,8 @@ export async function mergeGraphsByAttrs(
 
   for (const n2 of graph2.nodes()) {
     if (!mappings.hasKey(n2)) {
-      mergedGraph.mergeNode(n2, { color: "#f00" });
+      // mergedGraph.mergeNode(n2, { color: "#f00" });
+      mergedGraph.updateNodeAttribute(n2, "color", c => chroma.mix(c, "#f00", 0.5).hex());
     }
   }
 
