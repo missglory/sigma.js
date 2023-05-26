@@ -8,6 +8,22 @@ import { Coordinates } from "sigma/types";
 import * as Ranges from "./Ranges";
 import { fileText } from "./LoadFile";
 
+const findInclusions = (content: string, inclusion: string): Ranges.Range[] => {
+  const matches: Ranges.Range[] = [];
+
+  let startIndex = 0;
+  let matchStart: number;
+  while ((matchStart = content.indexOf(inclusion, startIndex)) !== -1) {
+    const matchEnd: number = matchStart + inclusion.length;
+    matches.push([matchStart, matchEnd]);
+
+    // Move to the next character after the found match to avoid infinite loop
+    startIndex = matchStart + 1;
+  }
+
+  return matches;
+};
+
 const findHolesByRegex = (content: string, regex: RegExp): Ranges.Range[] => {
   const matches: Ranges.Range[] = [];
 
@@ -45,7 +61,16 @@ export const searchInputs = [0, 1].map((v) => {
   });
 });
 
-const testRange = (n, finds): boolean => {
+export const search0Scope = editor.create(document.getElementById("search0Scope"), {
+  ...searchParams
+});
+
+const testRange = (n, finds, graph): boolean => {
+  // const attr = graph.getNodeAttributes(n);
+  // console.log(n.location);
+  if (n.location === undefined || n.location.offset === undefined || n.location.endOffset === undefined) {
+    return false;
+  }
   const ranges = new Ranges.RangeFinder([n.location.offset, n.location.endOffset]);
   // findHolesByRegex(fileText, pattern, ranges.getHoles().at(0));
 
@@ -98,21 +123,31 @@ export function setSearchQuery(query: string, selection: number) {
     appendText(query, searchInputs[selection].getModel());
   }
 
-  const pattern = new RegExp(query);
-
-  // const suggestionsCode = [];
-  let suggestions = graph
-    .nodes()
-    .map((n) => {
-      return {
-        id: n,
-        label: graph.getNodeAttribute(n, "label"),
-        location: graph.getNodeAttribute(n, "location"),
-      };
-    })
-    .filter((n) => pattern.test(n.label) || pattern.test(n.id));
-  if (suggestions.length === 0) {
-    const finds = findHolesByRegex(fileText[0], pattern);
+  let idSelected = false;
+  let suggestions = [];
+  try {
+    const pattern = new RegExp(query);
+    suggestions = graph
+      .nodes()
+      .map((n) => {
+        return {
+          id: n,
+          label: graph.getNodeAttribute(n, "label"),
+          location: graph.getNodeAttribute(n, "location"),
+          kind: graph.getNodeAttribute(n, "kind")
+        };
+      })
+      .filter((n) => pattern.test(n.kind) || pattern.test(n.id));
+      // .filter((n) => pattern.test(n.id));
+      if (suggestions.length) {
+        idSelected = true;
+      }
+    } catch (e) {
+    console.log('catch id regex');
+  }
+  if (!idSelected) {
+    // const finds = findHolesByRegex(fileText[0], pattern);
+    const finds = findInclusions(fileText[0], query);
     suggestions = graph
       .nodes()
       .map((n) => {
@@ -122,7 +157,7 @@ export function setSearchQuery(query: string, selection: number) {
           location: graph.getNodeAttribute(n, "location"),
         };
       })
-      .filter((n) => testRange(n, finds));
+      .filter((n) => testRange(n, finds, graph));
   }
 
   if (suggestions.length === 1) {
@@ -131,6 +166,7 @@ export function setSearchQuery(query: string, selection: number) {
     if (selectedOther !== undefined) {
       assignPath(selectedOther, state.selected[selection].selected);
     }
+
 
     const nodePosition = renderer.getNodeDisplayData(state.selected[selection].selected) as Coordinates;
     renderer.getCamera().animate(nodePosition, {
