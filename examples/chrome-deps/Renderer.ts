@@ -19,6 +19,7 @@ export const renderer = new Sigma(graph, container, {
 let scaleMult = 10;
 export const downscaleConst = 1;
 
+
 document.getElementById("inn").onclick = (ev) => {
   const val = (ev.target as HTMLInputElement).checked;
   state.inNeighbors = val;
@@ -128,8 +129,6 @@ const setupRenderer = () => {
 
 setupRenderer();
 
-
-
 export const getHeatMapColor = (v: number) => {
   v = Math.min(v, 1.1);
   const colorScale = [
@@ -151,7 +150,6 @@ export const getHeatMapColor = (v: number) => {
   }
   return colorScale[Math.min(colorScale.length, i)][1];
 };
-
 
 renderer.setSetting("nodeReducer", (node, data) => {
   const res: Partial<NodeDisplayData> = { ...data };

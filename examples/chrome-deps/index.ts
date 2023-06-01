@@ -215,14 +215,15 @@ const asyncStartBlock = async (dataRaw, dataDiff, refresh) => {
 export async function start(dataRaw, dataDiff, append = true, refresh = false) {
   // object2Graph(dataRaw, graph, append);
   await asyncStartBlock(dataRaw, dataDiff, refresh);
-  await GraphMerge.mergeGraphsByAttrs(
-    Graph.diffGraph,
-    Graph.graph,
-    Graph.graph
-    // Graph.graphRoots[0],
-    // Graph.diffGraphRoots[0],
-    // Graph.graph,
-  );
+  // await GraphMerge.mergeGraphsByAttrs(
+  //   Graph.diffGraph,
+  //   Graph.graph,
+  //   Graph.graph
+  //   // Graph.graphRoots[0],
+  //   // Graph.diffGraphRoots[0],
+  //   // Graph.graph,
+  // );
+  
   // GraphMerge2.merge(Graph.diffGraph, Graph.graph, Graph.diffGraphRoots[0]);
 
   // Graph.graph = mergedGraph;

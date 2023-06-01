@@ -25,7 +25,8 @@ export async function merge(graph1: Graph, graph2: Graph, root: string) {
       graph2.addNode(node, {
 				...attr,
 				// bfsOrder: bfs_order,
-				color: "#f00",
+				// color: "#f00",
+        color: attr.color,
 				presence: 0
 			});
 			nodeMap2.set(key, node);

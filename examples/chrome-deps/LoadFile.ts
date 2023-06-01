@@ -81,10 +81,17 @@ fileButton.addEventListener("click", async () => {
         const srcResponse = await fetch(
           `http://localhost:5000/src?file=${encodeURIComponent(file)}&commit=${encodeURIComponent(commit)}`,
         );
-        // let response;
-        const response = await fetch(
-          `http://localhost:5000/ast_from_file?file=${encodeURIComponent(file)}&commit=${encodeURIComponent(commit)}`,
-        );
+        let response;
+        if (file.includes("callgrind")) {
+          response = await fetch(
+            `http://localhost:5000/callgrind?file=${encodeURIComponent(file)}&commit=${encodeURIComponent(commit)}`,
+          );
+
+        } else {
+          response = await fetch(
+            `http://localhost:5000/ast_from_file?file=${encodeURIComponent(file)}&commit=${encodeURIComponent(commit)}`,
+          );
+        }
         if (!response.ok) {
           const message = `An error has occurred: ${response.status}`;
           throw new Error(message);
