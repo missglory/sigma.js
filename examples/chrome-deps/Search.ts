@@ -147,17 +147,39 @@ export function setSearchQuery(query: string, selection: number) {
   }
   if (!idSelected) {
     // const finds = findHolesByRegex(fileText[0], pattern);
-    const finds = findInclusions(fileText[0], query);
+    try {
+      const finds = findInclusions(fileText[0], query);
+      suggestions = graph
+        .nodes()
+        .map((n) => {
+          return {
+            id: n,
+            label: graph.getNodeAttribute(n, "label"),
+            location: graph.getNodeAttribute(n, "location"),
+          };
+        })
+        .filter((n) => testRange(n, finds, graph));
+    } catch (e) {
+      suggestions = [];
+    }
+    if (suggestions.length) {
+      idSelected = true;
+    }
+  }
+
+  if (!idSelected) {
+    const pattern = new RegExp(query);
     suggestions = graph
       .nodes()
       .map((n) => {
         return {
           id: n,
           label: graph.getNodeAttribute(n, "label"),
-          location: graph.getNodeAttribute(n, "location"),
+          // location: graph.getNodeAttribute(n, "location"),
+          // kind: graph.getNodeAttribute(n, "kind")
         };
       })
-      .filter((n) => testRange(n, finds, graph));
+      .filter((n) => pattern.test(n.label));
   }
 
   if (suggestions.length === 1) {
