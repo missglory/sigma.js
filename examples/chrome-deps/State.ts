@@ -45,7 +45,7 @@ export const updateStateSelection = async (diff, selectionId) => {
   // delete attrs.code;
   const loc = attrs.location !== undefined ? attrs.location : attrs.location2;
   const file = attrs.location !== undefined ? LoadFile.fileText[0] : LoadFile.fileText[1];
-  if (loc.line === undefined) {
+  if (loc === undefined || loc.line === undefined) {
     //   Object.assign(loc, {
     //     ...Utils.getLineColumn(fileText, loc.offset),
     //     // ...Utils.getLineColumn(loc.endOffset, fileText),

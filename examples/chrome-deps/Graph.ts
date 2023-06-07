@@ -114,6 +114,7 @@ const tree2GraphRecursion = (tree, graph, parentId = null, lvl, order = 0, props
   } else {
     const c = chroma.random()._rgb;
     nodeId = getIdFromFunctionName(tree);
+    // nodeId = tree;
     tree = graph.getNodeAttributes(nodeId);
     if (tree.x !== undefined) {
       return;
@@ -175,6 +176,12 @@ export const tree2Graph = async (tree, graph, refresh = false, graphRoots) => {
     tree2GraphRecursion(tree, graph, null, 0, 0, {}, graphRoots);
   } else {
     Object.entries(tree).forEach(([key, value]) => { graph.mergeNode(getIdFromFunctionName(key), value); });
+    // Object.entries(tree).forEach(([key, value]) => { 
+    //   const keyName = key.split(")")[1];
+    //   if (keyName && keyName.length > 0 && !keyName.includes("__cxx")) {
+    //     graph.mergeNode(key, value);
+    //   }
+    // });
     tree2GraphRecursion(Object.keys(tree)[0], graph, null, 0, 0, {}, graphRoots);
   }
   console.log(Palette.palette.getColorUsageHistogram());
@@ -191,6 +198,38 @@ export const tree2Graph = async (tree, graph, refresh = false, graphRoots) => {
   renderer.refresh();
   return graph;
 };
+
+interface GraphNode {
+  key: string;
+  attributes?;
+}
+
+export function dropNodePreservePaths(graph: graphology.DirectedGraph, nodeKey: string): graphology.DirectedGraph {
+  if (!graph.hasNode(nodeKey)) {
+    throw new Error(`Node ${nodeKey} does not exist in the graph`);
+  }
+
+  // Retrieve the incoming and outgoing neighbors of the node
+  const inNeighbors = graph.inNeighbors(nodeKey);
+  const outNeighbors = graph.outNeighbors(nodeKey);
+
+  // Create edges between all pairs of incoming and outgoing neighbors
+  for (const inNeighbor of inNeighbors) {
+    for (const outNeighbor of outNeighbors) {
+      // Check if edge already exists to avoid duplicates
+      if (!graph.edge(inNeighbor, outNeighbor)) {
+        graph.addEdge(
+          inNeighbor,
+          outNeighbor,
+          // You can add edge attributes here if needed
+        );
+      }
+    }
+  }
+
+  graph.dropNode(nodeKey);
+  return graph;
+}
 
 export const string2Graph = (rootNode, i, dataRaw, graph, append = true) => {
   const cRoot = chroma.random()._rgb;
@@ -209,7 +248,7 @@ export const string2Graph = (rootNode, i, dataRaw, graph, append = true) => {
       const pattern = new RegExp(rootNode);
       // graph.dropNode(rootNode);
       for (const node of graph.filterNodes((node) => pattern.test(node))) {
-        graph.dropNode(node);
+        dropNodePreservePaths(graph, node);
       }
     }
   } catch (e) {}

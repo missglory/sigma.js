@@ -6,7 +6,7 @@ import * as Surreal from "./Surreal";
 import { downscaleConst, getHeatMapColor, renderer } from "./Renderer";
 import * as Graph from "./Graph";
 import { searchInputs, setSearchQuery } from "./Search";
-import { appendText, diffEditor } from "./Editors";
+import * as Editors from "./Editors";
 import { state } from "./State";
 import { fileButton } from "./LoadFile";
 import * as Plotly from "./Plotly";
@@ -84,9 +84,10 @@ let layout: FA2Layout;
 
 const subtractButton = document.getElementById("subtractButton") as HTMLButtonElement;
 subtractButton.onclick = (e) => {
-  const v = diffEditor.getValue();
+  const v = Editors.graphEditor.getValue();
   const cur = Graph.graph2Object(Graph.graph);
   // let obj;
+  console.log(cur);
   let res = {};
   try {
     // const obj = JSON.parse(v);
@@ -107,10 +108,26 @@ subtractButton.onclick = (e) => {
     //   }
     // }
     // console.log(res);
-    start(JSON.parse(v), false);
+    start(JSON.parse(v), {} ,false);
   } catch (e) {
-    alert("JSON error");
+    // alert("JSON error");
+    console.log("JSON error");
   }
+};
+
+const cutButton = document.getElementById("cutButton") as HTMLButtonElement;
+cutButton.onclick = (e) => {
+  const v = searchInputs[0].getValue();
+  const sel = state.selected[0];
+  const suggests = sel === undefined || sel.suggest === undefined ? [] : Array.from(sel.suggest);
+  if (sel && sel.selected) {
+    Graph.dropNodePreservePaths(Graph.graph, sel.selected);
+  } else if (suggests && suggests.length > 0) {
+    for (const s of suggests) {
+      Graph.dropNodePreservePaths(Graph.graph, s);
+    }
+  }
+  Graph.graph2diffFull(Graph.graph);
 };
 
 const fa2Button = document.getElementById("fa2") as HTMLButtonElement;
@@ -136,7 +153,7 @@ document.getElementById("resetBtn").onclick = (e) => {
 document.getElementById("reroute").onclick = (ev) => {
   const vals = searchInputs.map((input) => input.getModel().getValue());
   searchInputs.forEach((input, index) => {
-    appendText(vals[(index + 1) % vals.length], input.getModel());
+    Editors.appendText(vals[(index + 1) % vals.length], input.getModel());
     // input.dispatchEvent(new Event("input"));
   });
 };
@@ -208,26 +225,24 @@ document.getElementById("plotButton").dispatchEvent(new Event("click"));
 Surreal.surrealConnect();
 
 const asyncStartBlock = async (dataRaw, dataDiff, refresh) => {
-  Graph.tree2Graph(dataDiff, Graph.diffGraph, refresh, Graph.diffGraphRoots);
+  // Graph.tree2Graph(dataDiff, Graph.diffGraph, refresh, Graph.diffGraphRoots);
   Graph.tree2Graph(dataRaw, Graph.graph, refresh, Graph.graphRoots);
 };
 
 export async function start(dataRaw, dataDiff, append = true, refresh = false) {
   // object2Graph(dataRaw, graph, append);
-  await asyncStartBlock(dataRaw, dataDiff, refresh);
   // await GraphMerge.mergeGraphsByAttrs(
-  //   Graph.diffGraph,
-  //   Graph.graph,
-  //   Graph.graph
-  //   // Graph.graphRoots[0],
-  //   // Graph.diffGraphRoots[0],
-  //   // Graph.graph,
-  // );
-  
-  // GraphMerge2.merge(Graph.diffGraph, Graph.graph, Graph.diffGraphRoots[0]);
-
-  // Graph.graph = mergedGraph;
-  Graph.graph2diffFull(Graph.graph);
+    //   Graph.diffGraph,
+    //   Graph.graph,
+    //   Graph.graph
+    //   // Graph.graphRoots[0],
+    //   // Graph.diffGraphRoots[0],
+    //   // Graph.graph,
+    // );
+    
+    // GraphMerge2.merge(Graph.diffGraph, Graph.graph, Graph.diffGraphRoots[0]);
+    
+    // Graph.graph = mergedGraph;
   // ReachableCounts.reachableCounts.clear();
   // ReachableCounts.countReachableNodes(graph)
   // ReachableCounts.assignReachableCounts(graph);
@@ -235,6 +250,8 @@ export async function start(dataRaw, dataDiff, append = true, refresh = false) {
   // ReachableCounts.reachableCounts2Editor(graph, sortEditor);
 
   if (append) {
+    await asyncStartBlock(dataRaw, dataDiff, refresh);
+    Graph.graph2diffFull(Graph.graph);
     const isRunning = layout?.isRunning() ?? true;
     layout?.kill();
     const v = parseFloat(document.getElementById("layoutInput")["value"]);
@@ -250,6 +267,9 @@ export async function start(dataRaw, dataDiff, append = true, refresh = false) {
     if (isRunning) {
       layout.start();
     }
+  } else {
+    Graph.object2Graph(dataRaw, Graph.graph, false);
+    Graph.graph2diffFull(Graph.graph);
   }
   fa2Button.onclick = toggleFA2Layout;
 
