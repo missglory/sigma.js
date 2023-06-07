@@ -179,7 +179,7 @@ export function setSearchQuery(query: string, selection: number) {
           // kind: graph.getNodeAttribute(n, "kind")
         };
       })
-      .filter((n) => n.label.includes(query));
+      .filter((n) => pattern.test(n.label));
   }
 
   if (suggestions.length === 1) {
