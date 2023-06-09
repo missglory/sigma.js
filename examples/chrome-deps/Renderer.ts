@@ -57,7 +57,7 @@ const setupRenderer = () => {
   });
 
   const clickFunc = (event, index) => {
-    const v = "^" + event.node + "$";
+    const v = event.node;
     appendText(v, searchInputs[index].getModel());
   };
   renderer.on("clickNode", (e) => {

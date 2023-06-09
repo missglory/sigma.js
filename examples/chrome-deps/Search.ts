@@ -62,10 +62,10 @@ export const searchInputs = [0, 1].map((v) => {
 });
 
 export const search0Scope = editor.create(document.getElementById("search0Scope"), {
-  ...searchParams
+  ...searchParams,
 });
 
-const testRange = (n, finds, graph): boolean => {
+const testRange = (n: any, finds, graph): boolean => {
   // const attr = graph.getNodeAttributes(n);
   // console.log(n.location);
   if (n.location === undefined || n.location.offset === undefined || n.location.endOffset === undefined) {
@@ -110,43 +110,13 @@ export function setSearchQuery(query: string, selection: number) {
     return;
   }
 
-  if (query[0] === '"') {
-    query = "^" + query.substring(1);
-  }
-
-  if (query.at(-1) === '"') {
-    query = query.substring(0, query.length - 1) + "$";
-  }
-
   state.searchQuery[selection] = query;
   if (searchInputs[selection].getModel().getValue() !== query) {
     appendText(query, searchInputs[selection].getModel());
   }
 
-  let idSelected = false;
-  let suggestions = [];
-  try {
-    const pattern = new RegExp(query);
-    suggestions = graph
-      .nodes()
-      .map((n) => {
-        return {
-          id: n,
-          label: graph.getNodeAttribute(n, "label"),
-          location: graph.getNodeAttribute(n, "location"),
-          kind: graph.getNodeAttribute(n, "kind")
-        };
-      })
-      .filter((n) => pattern.test(n.kind) || pattern.test(n.id));
-      // .filter((n) => pattern.test(n.id));
-      if (suggestions.length) {
-        idSelected = true;
-      }
-    } catch (e) {
-    console.log('catch id regex');
-  }
-  if (!idSelected) {
-    // const finds = findHolesByRegex(fileText[0], pattern);
+  let suggestions = graph.nodes().filter((n) => n === query);
+  if (suggestions.length === 0) {
     try {
       const finds = findInclusions(fileText[0], query);
       suggestions = graph
@@ -154,48 +124,51 @@ export function setSearchQuery(query: string, selection: number) {
         .map((n) => {
           return {
             id: n,
-            label: graph.getNodeAttribute(n, "label"),
+            // label: graph.getNodeAttribute(n, "label"),
             location: graph.getNodeAttribute(n, "location"),
           };
         })
-        .filter((n) => testRange(n, finds, graph));
+        .filter((n) => testRange(n, finds, graph))
+        .map(n => n.id);
     } catch (e) {
-      suggestions = [];
+      console.error("find code error");
     }
-    if (suggestions.length) {
-      idSelected = true;
+  }
+  const strings = query.split(";;");
+  for (const string of strings) {
+    try {
+      // const pattern = new RegExp(string);
+      if (suggestions.length > 0) {
+        break;
+      }
+      suggestions = graph.nodes();
+
+      // const n = graph.
+      const func = new Function("n", "return n !== undefined && " + string);
+      suggestions = suggestions.filter((nodeId) => {
+        const n = graph.getNodeAttributes(nodeId);
+        const res = func(n);
+        return res;
+      });
+    } catch (e) {
+      console.error("Search error ", string);
     }
   }
 
-  if (!idSelected) {
-    const pattern = new RegExp(query);
-    suggestions = graph
-      .nodes()
-      .map((n) => {
-        return {
-          id: n,
-          label: graph.getNodeAttribute(n, "label"),
-          // location: graph.getNodeAttribute(n, "location"),
-          // kind: graph.getNodeAttribute(n, "kind")
-        };
-      })
-      .filter((n) => pattern.test(n.label));
-  }
+  console.log("suggestions length ", suggestions.length);
 
   if (suggestions.length === 1) {
-    updateStateSelection({ selected: suggestions[0].id, suggest: undefined }, selection);
+    updateStateSelection({ selected: suggestions[0], suggest: undefined }, selection);
     const selectedOther = state.selected[(selection + 1) % 2]?.selected;
     if (selectedOther !== undefined) {
       assignPath(selectedOther, state.selected[selection].selected);
     }
-
-
     const nodePosition = renderer.getNodeDisplayData(state.selected[selection].selected) as Coordinates;
     renderer.getCamera().animate(nodePosition, {
       duration: 500,
     });
   } else {
-    updateStateSelection({ selected: undefined, suggest: new Set(suggestions.map(({ id }) => id)) }, selection);
+    updateStateSelection({ selected: undefined, suggest: new Set(suggestions) }, selection);
   }
 
   renderer.refresh();

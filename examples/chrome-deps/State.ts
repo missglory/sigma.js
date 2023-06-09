@@ -59,7 +59,7 @@ export const updateStateSelection = async (diff, selectionId) => {
     } catch (e) {
       console.error("error\n", file, loc);
     }
-  } else {
+    } else {
     try {
       // graph.setNodeAttribute(state.selected[selectionId].selected, "code", );
       appendText(JSON.stringify(attrs, null, 1), nodeEditor.getModel());

@@ -114,7 +114,7 @@ export const regexEditor = editor.create(document.getElementById("regexContainer
 	...searchParams,
 });
 
-appendText("callgrind.out.1", fileNameEditor.getModel());
+appendText("html_document_parser.cc", fileNameEditor.getModel());
 
 export const cppEditor = editor.create(document.getElementById("cppContainer"), {
   language: "cpp",

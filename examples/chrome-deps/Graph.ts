@@ -52,6 +52,13 @@ function flattenArray(inputArray: (string | string[])[]): string[] {
     return flatArray;
 }
 
+const linkParent = (parentId, nodeId, graph, graphRoots) => {
+  if (parentId !== null && parentId !== undefined) {
+    graph.mergeEdge(parentId, nodeId);
+  } else {
+    graphRoots.push(nodeId);
+  }
+}
 
 let g_order = 0;
 const tree2GraphRecursion = (tree, graph, parentId = null, lvl, order = 0, props = {}, graphRoots) => {
@@ -85,6 +92,8 @@ const tree2GraphRecursion = (tree, graph, parentId = null, lvl, order = 0, props
     if (Array.isArray(tree.children)) {
       // tree.children.forEach((child) => tree2GraphRecursion(child, graph, nodeId, lvl + 1, ord, {}, graphRoots));
       tree.children.forEach((child) => tree2GraphRecursion(child, graph, nodeId, lvl + 1, g_order, {}, graphRoots));
+    } else {
+      console.error("Children format error!: ", tree.children);
     }
     const unparsedChildren = rangeFinder.getHoles().map((g) => {
       return {
@@ -103,6 +112,10 @@ const tree2GraphRecursion = (tree, graph, parentId = null, lvl, order = 0, props
         // order: "100000",
       };
     });
+
+    linkParent(parentId, nodeId, graph, graphRoots);
+    g_order++;
+
     if (unparsedChildren.length === 1) {
       return;
     }
@@ -125,7 +138,7 @@ const tree2GraphRecursion = (tree, graph, parentId = null, lvl, order = 0, props
       }
       tree.calls = flattenArray(tree.calls);
     } catch (e) {
-      console.error("whaaat ", e);
+      console.error("Flatter array error!: ", e);
     }
     graph.mergeNode(nodeId, {
       x: c[0] * downscaleConst,
@@ -146,22 +159,9 @@ const tree2GraphRecursion = (tree, graph, parentId = null, lvl, order = 0, props
       // tree.children.forEach((child) => tree2GraphRecursion(child, graph, nodeId, lvl + 1, ord, {}, graphRoots));
       tree.children.forEach((child) => tree2GraphRecursion(child, graph, nodeId, lvl + 1, g_order, {}, graphRoots));
     }
+    linkParent(parentId, nodeId, graph, graphRoots);
+    g_order++;
   }
-
-  // If there's a parent, add an edge between the parent and the current node
-  if (parentId !== null) {
-    graph.mergeEdge(parentId, nodeId);
-  } else {
-    graphRoots.push(nodeId);
-  }
-
-  // If the current node has children, recursively process them
-  // let ord = 0
-  g_order++;
-
-  // const gapLines = gaps.map((g) => {
-  //   return g.map((gi) => Utils.getLineColumn(fileText, gi));
-  // });
 };
 
 export const tree2Graph = async (tree, graph, refresh = false, graphRoots) => {
