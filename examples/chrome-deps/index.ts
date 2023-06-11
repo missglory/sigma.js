@@ -225,7 +225,7 @@ document.getElementById("plotButton").dispatchEvent(new Event("click"));
 Surreal.surrealConnect();
 
 const asyncStartBlock = async (dataRaw, dataDiff, refresh) => {
-  // Graph.tree2Graph(dataDiff, Graph.diffGraph, refresh, Graph.diffGraphRoots);
+  Graph.tree2Graph(dataDiff, Graph.diffGraph, refresh, Graph.diffGraphRoots);
   Graph.tree2Graph(dataRaw, Graph.graph, refresh, Graph.graphRoots);
 };
 
@@ -251,7 +251,16 @@ export async function start(dataRaw, dataDiff, append = true, refresh = false) {
 
   if (append) {
     await asyncStartBlock(dataRaw, dataDiff, refresh);
-    Graph.graph2diffFull(Graph.graph);
+    // Graph.graph2diffFull(Graph.graph);
+  await GraphMerge.mergeGraphsByAttrs(
+      Graph.diffGraph,
+      Graph.graph,
+      Graph.graph
+      // Graph.graphRoots[0],
+      // Graph.diffGraphRoots[0],
+      // Graph.graph,
+    );
+    
     const isRunning = layout?.isRunning() ?? true;
     layout?.kill();
     const v = parseFloat(document.getElementById("layoutInput")["value"]);

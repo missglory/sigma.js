@@ -23,7 +23,7 @@ export const downscaleConst = 1;
 document.getElementById("inn").onclick = (ev) => {
   const val = (ev.target as HTMLInputElement).checked;
   state.inNeighbors = val;
-  document.getElementById("inContainer").hidden = !val;
+  // document.getElementById("inContainer").hidden = !val;
   // const ttInn = document.getElementById("ttInn");
   // ttIn.innerHTML = graph.neighbors()
   renderer.refresh();
