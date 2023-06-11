@@ -135,14 +135,15 @@
 		* {
 			color: white;
 			border-radius: 3px;
+			/* padding: 3px; */
 			background: rgba(0, 0, 0, 0);
 			border-color: #888;
 		}
 
 		fieldset {
 			border-radius: 8px;
-			/* border-top: 1px; */
-			padding-top: 10px;
+			padding-top: 20px;
+			padding-bottom: 10px;
 		}
 
 		button {
@@ -153,14 +154,6 @@
 			text-align: center;
 		}
 
-		/* #ttInn #ttOutn {
-			width: 500px;
-			max-width: 500px;
-		}
-
-		#inContainer #outContainer {
-			height: 200px;
-		}		 */
 		#diffContainer {
 			height: 100px;
 			margin-bottom: 3px;
@@ -242,8 +235,9 @@
 
 		#search0Container {
 			display: inline-block;
-			width: 100%;
+			width: 92%;
 			height: 100%;
+			overflow: hidden;
 		}	
 
 		#search0Scope {
@@ -259,6 +253,7 @@
 			float: left;
 			/* height: 11px; */
 			height: 100%;
+			overflow: hidden;
 		}
 
 		#search-input1 {
@@ -268,6 +263,11 @@
 			/* float: right; */
 			/* height: 20px; */
 			width: 88%;
+			overflow: hidden;
+		}
+
+		#searchFieldset > * {
+			overflow: hidden;
 		}
 
 		.inlineEl {
@@ -322,9 +322,13 @@
 		}
 
 		#reroute {
+			max-width: 7%;
 			margin: 2px;
 		}
 
+		#cutButton {
+			max-width: 7%;
+		}
 
 		.scroll-container {
 			height: 100%;
@@ -372,9 +376,9 @@
 	<main>
 		<!-- <div id="sigma-container"></div> -->
 		<div id="interface" class="scroll-container">
-			<button id="collapse0" class="collapseButton">▼</button>
 			<fieldset>
-				<small>Edges: <b id="nEdges">0</b></small>
+				<button id="collapse0" class="collapseButton">▼</button>
+				<small>Query</small>
 				<div id="nameContainer" class="editor"></div>
 				<div id="diffContainer" class="editor"></div>
 				<!-- <button id="revertButton">Revert</button> -->
@@ -387,12 +391,12 @@
 			</fieldset>
 			<fieldset>
 				<button id="collapse4" class="collapseButton">▼</button>
-				<small>Reachable counts sort</small>
+				<small>Query result</small>
 				<div id="sortContainer" class="editor"></div>
 			</fieldset>
 			<fieldset>
 				<button id="collapse5" class="collapseButton">▼</button>
-				<small>Reachable nodes</small>
+				<small>Blank</small>
 				<input type="number" value="1"></input>
 				<div id="reachableContainer" class="editor"></div>
 				<button id="reachableGetButton">Get</button>
@@ -462,7 +466,8 @@
 				<small>Infer: </small>
 				<input type="number" id="inferInput" maxLength="4" style="width:35px" value="10"></input>
 				<n>Nodes size: </n>
-				<input type="number" id="sizeInput" maxLength="3" style="width:35px" value="10"></input>
+				<input type="number" id="sizeInput" maxLengtH="3" style="width:35px" value="10"></input>
+				<small>Edges: <b id="nEdges">0</b></small>
 				<fieldset id="graphFieldset">
 					<div id="sigma-container"></div>
 					<div id="cppLinesContainer" class="editor"></div>
