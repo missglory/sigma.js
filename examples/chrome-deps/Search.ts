@@ -6,7 +6,7 @@ import { assignPath } from "./Paths";
 import { graph, graphRoots, diffGraph, diffGraphRoots } from "./Graph";
 import { Coordinates } from "sigma/types";
 import * as Ranges from "./Ranges";
-import { fileText } from "./LoadFile";
+import * as LoadFile from "./LoadFile";
 
 const findInclusions = (content: string, inclusion: string): Ranges.Range[] => {
   const matches: Ranges.Range[] = [];
@@ -117,42 +117,34 @@ export function setSearchQuery(query: string, selection: number) {
 
   let suggestions = graph.nodes().filter((n) => n === query);
   if (suggestions.length === 0) {
-    try {
-      const finds = findInclusions(fileText[0], query);
-      suggestions = graph
-        .nodes()
-        .map((n) => {
-          return {
-            id: n,
-            // label: graph.getNodeAttribute(n, "label"),
-            location: graph.getNodeAttribute(n, "location"),
-          };
-        })
-        .filter((n) => testRange(n, finds, graph))
-        .map(n => n.id);
-    } catch (e) {
-      console.error("find code error");
-    }
+    const finds = findInclusions(LoadFile.fileText[0], query);
+    suggestions = graph
+      .nodes()
+      .map((n) => {
+        return {
+          id: n,
+          // label: graph.getNodeAttribute(n, "label"),
+          location: graph.getNodeAttribute(n, "location"),
+        };
+      })
+      .filter((n) => testRange(n, finds, graph))
+      .map((n) => n.id);
   }
   const strings = query.split(";;");
   for (const string of strings) {
-    try {
-      // const pattern = new RegExp(string);
-      if (suggestions.length > 0) {
-        break;
-      }
-      suggestions = graph.nodes();
-
-      // const n = graph.
-      const func = new Function("n", "return n !== undefined && " + string);
-      suggestions = suggestions.filter((nodeId) => {
-        const n = graph.getNodeAttributes(nodeId);
-        const res = func(n);
-        return res;
-      });
-    } catch (e) {
-      console.error("Search error ", string);
+    // const pattern = new RegExp(string);
+    if (suggestions.length > 0) {
+      break;
     }
+    suggestions = graph.nodes();
+
+    // const n = graph.
+    const func = new Function("n", "return n !== undefined && " + string);
+    suggestions = suggestions.filter((nodeId) => {
+      const n = graph.getNodeAttributes(nodeId);
+      const res = func(n);
+      return res;
+    });
   }
 
   console.log("suggestions length ", suggestions.length);

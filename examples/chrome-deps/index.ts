@@ -5,28 +5,29 @@ import forceAtlas2 from "graphology-layout-forceatlas2";
 import * as Surreal from "./Surreal";
 import { downscaleConst, getHeatMapColor, renderer } from "./Renderer";
 import * as Graph from "./Graph";
-import { searchInputs, setSearchQuery } from "./Search";
+import * as Search from "./Search";
 import * as Editors from "./Editors";
 import { state } from "./State";
 import { fileButton } from "./LoadFile";
 import * as Plotly from "./Plotly";
 import * as GraphMerge from "./GraphMerge";
 import * as GraphMerge2 from "./GraphMerge2";
+import * as LoadFile from "./LoadFile";
+
 // import GoldenLayout, {ContentItem} from 'golden-layout';
 import {
-    ComponentContainer,
-    ComponentItemConfig,
-    ContentItem,
-    EventEmitter,
-    GoldenLayout,
-    JsonValue,
-    LayoutConfig,
-    LogicalZIndex,
-    ResolvedComponentItemConfig,
-    ResolvedLayoutConfig,
-    Stack
+  ComponentContainer,
+  ComponentItemConfig,
+  ContentItem,
+  EventEmitter,
+  GoldenLayout,
+  JsonValue,
+  LayoutConfig,
+  LogicalZIndex,
+  ResolvedComponentItemConfig,
+  ResolvedLayoutConfig,
+  Stack,
 } from "golden-layout";
-
 
 // Promise.all([fetch("./chrome_deps.json")])
 //   .then((rs) =>
@@ -132,7 +133,7 @@ subtractButton.onclick = (e) => {
 
 const cutButton = document.getElementById("cutButton") as HTMLButtonElement;
 cutButton.onclick = (e) => {
-  const v = searchInputs[0].getValue();
+  const v = Search.searchInputs[0].getValue();
   const sel = state.selected[0];
   const suggests = sel === undefined || sel.suggest === undefined ? [] : Array.from(sel.suggest);
   if (sel && sel.selected) {
@@ -166,8 +167,8 @@ document.getElementById("resetBtn").onclick = (e) => {
 };
 
 document.getElementById("reroute").onclick = (ev) => {
-  const vals = searchInputs.map((input) => input.getModel().getValue());
-  searchInputs.forEach((input, index) => {
+  const vals = Search.searchInputs.map((input) => input.getModel().getValue());
+  Search.searchInputs.forEach((input, index) => {
     Editors.appendText(vals[(index + 1) % vals.length], input.getModel());
     // input.dispatchEvent(new Event("input"));
   });
@@ -257,7 +258,7 @@ Surreal.surrealConnect();
 //   }]
 // };
 
-// // const testGL = 
+// // const testGL =
 // function handleBindComponentEvent(container: ComponentContainer, itemConfig: ResolvedComponentItemConfig): ComponentContainer.BindableComponent {
 //         const componentTypeName = ResolvedComponentItemConfig.resolveComponentTypeName(itemConfig);
 //         if (componentTypeName === undefined) {
@@ -267,7 +268,6 @@ Surreal.surrealConnect();
 //         this._boundComponentMap.set(container, component);
 
 // const myLayout = new GoldenLayout(config, "goldenLayout");
-
 
 const asyncStartBlock = async (dataRaw, dataDiff, refresh) => {
   Graph.tree2Graph(dataRaw, Graph.graph, refresh, Graph.graphRoots);
@@ -384,42 +384,25 @@ export async function start(dataRaw, dataDiff, append = true, refresh = false) {
     .map((node) => `<option value="${Graph.graph.getNodeAttribute(node, "label")}"></option>`)
     .join("\n");
 
-  // const scaryFunction = (node) => {
-  //   const boundarySet = new Set([node]);
-  //   const layers = [new Set(), new Set(), new Set()];
-  //   let inSet = new Set([node]);
-  //   let outSet = new Set();
-
-  //   for (let i = 0; i < 3; i++) {
-  //     inSet.forEach((val) => {
-  //       graph.forEachInNeighbor(val, (neighbor) => {
-  //         if (boundarySet.has(neighbor)) {
-  //         } else {
-  //           boundarySet.add(neighbor);
-  //           outSet.add(neighbor);
-  //         }
-  //       });
-  //     });
-  //     inSet = new Set(outSet);
-  //     layers[i] = outSet;
-  //     outSet = new Set();
-  //   }
-  //   return layers;
-  // };
-
-  searchInputs.forEach((searchInput, index) => {
+  Search.searchInputs.forEach((searchInput, index) => {
     searchInput.onDidChangeModelContent((e) => {
-      setSearchQuery(searchInput.getModel().getValue() || "", index);
-      const tt = document.getElementById("searchTT" + index.toString());
-      const clrStr = state.selected[index].selected !== undefined ? "rgb(128,255,220)" : "#fff";
-      tt.style.color = clrStr;
-      tt.innerHTML = (
-        state.selected[index].suggest !== undefined
-          ? state.selected[index].suggest.size
-          : state.selected[index].selected !== undefined
-          ? 1
-          : 0
-      ).toString();
+      try {
+        Search.setSearchQuery(searchInput.getModel().getValue() || "", index);
+        const tt = document.getElementById("searchTT" + index.toString());
+        const clrStr = state.selected[index].selected !== undefined ? "rgb(128,255,220)" : "#fff";
+        tt.style.color = clrStr;
+        tt.innerHTML = (
+          state.selected[index].suggest !== undefined
+            ? state.selected[index].suggest.size
+            : state.selected[index].selected !== undefined
+            ? 1
+            : 0
+        ).toString();
+        LoadFile.applyEditorBackground(searchInput, "editorSuccessDecoration");
+      } catch (e) {
+        console.log("setSearchQuery error", e);
+        LoadFile.applyEditorBackground(searchInput, "editorErrorDecoration");
+      }
     });
   });
 }
