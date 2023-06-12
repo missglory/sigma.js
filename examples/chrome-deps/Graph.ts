@@ -167,12 +167,12 @@ const tree2GraphRecursion = (tree, graph, parentId = null, lvl, order = 0, props
 export const tree2Graph = async (tree, graph, refresh = false, graphRoots) => {
   if (refresh) {
     graph.clear();
-    if (tree.location !== undefined) {
+    if (tree && tree.location !== undefined) {
       _normalize = tree.location.endOffset - tree.location.offset;
     }
   }
   g_order = 0;
-  if (tree.location !== undefined) {
+  if (tree && tree.location !== undefined) {
     tree2GraphRecursion(tree, graph, null, 0, 0, {}, graphRoots);
   } else {
     Object.entries(tree).forEach(([key, value]) => { graph.mergeNode(getIdFromFunctionName(key), value); });

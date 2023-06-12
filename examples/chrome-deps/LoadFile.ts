@@ -5,6 +5,7 @@ import { graph } from "./Graph";
 import { searchParams } from "./Editors";
 import { editor } from "monaco-editor";
 import * as monaco from "monaco-editor";
+import { StyleConstants } from "golden-layout";
 
 export let fileText = ["", ""];
 export let fileNames = ["", ""];
@@ -67,6 +68,35 @@ export function getFileContents(file) {
 export const fileButton = document.getElementById("fileButton");
 // }
 
+Editors.fileNameEditor.onDidChangeModelContent(async (event) => {
+  const editorContent = Editors.fileNameEditor.getModel().getValue();
+  const fileButton = document.getElementById("fileButton");
+  if (fileButton && editorContent.includes("callgrind")) {
+    fileButton.innerHTML = "Get Callgrind";
+  } else {
+    fileButton.innerHTML = "Get AST";
+  }
+  try {
+    const srcResponse = await fetch(
+      `http://localhost:5000/src?file=${encodeURIComponent(editorContent)}&commit=HEAD`,
+    );
+
+    if (!srcResponse.ok) {
+      const message = `SRC error: ${srcResponse.status}`;
+      throw new Error(message);
+    } else {
+      const src = await srcResponse.json();
+      if (src.contents === undefined) {
+        throw new Error("HEAD file contents empty");
+      }
+      applyEditorBackground(Editors.fileNameEditor, "editorSuccessDecoration");
+    }
+  } catch (error) {
+    console.error(error);
+    applyEditorBackground(Editors.fileNameEditor, "editorErrorDecoration");
+  }
+});
+
 fileButton.addEventListener("click", async () => {
   const file = Editors.fileNameEditor.getModel().getValue();
   console.log("get file: " + file);
@@ -104,9 +134,11 @@ fileButton.addEventListener("click", async () => {
         const fileAST = await response.json();
         fileNames[i] = file;
         fileText[i] = (await srcResponse.json()).contents;
-        // console.log(fileText[i]);
+        if (fileAST.contents === undefined) {
+          throw new Error("response empty contents");
+        }
+        applyEditorBackground(Editors.fileNameEditor, "editorSuccessDecoration");
         return fileAST.contents;
-        // graphs.push(fileAST.contents);
       }),
     );
     console.log(graphs);
@@ -115,10 +147,15 @@ fileButton.addEventListener("click", async () => {
     // Editors.graphEditor2.getModel().setValue(graphs[1]);
     Editors.appendText(JSON.stringify(graphs[0], null, 1), Editors.graphEditor.getModel());
     Editors.appendText(JSON.stringify(graphs[1], null, 1), Editors.graphEditor2.getModel());
-    start(graphs[0], graphs[1], true, true);
-    console.log("file AST");
+    if (fileNames[0].includes("callgrind")) {
+      start(graphs[0], undefined, true, true);
+    } else {
+      start(graphs[0], graphs[1], true, true);
+    }
+    console.log("Loading AST/callgrind finished");
   } catch (err) {
     console.error(err);
+    applyEditorBackground(Editors.fileNameEditor, "editorErrorDecoration");
   }
   // ed.getModel().getValue());
 

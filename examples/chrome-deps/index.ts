@@ -12,6 +12,21 @@ import { fileButton } from "./LoadFile";
 import * as Plotly from "./Plotly";
 import * as GraphMerge from "./GraphMerge";
 import * as GraphMerge2 from "./GraphMerge2";
+// import GoldenLayout, {ContentItem} from 'golden-layout';
+import {
+    ComponentContainer,
+    ComponentItemConfig,
+    ContentItem,
+    EventEmitter,
+    GoldenLayout,
+    JsonValue,
+    LayoutConfig,
+    LogicalZIndex,
+    ResolvedComponentItemConfig,
+    ResolvedLayoutConfig,
+    Stack
+} from "golden-layout";
+
 
 // Promise.all([fetch("./chrome_deps.json")])
 //   .then((rs) =>
@@ -108,7 +123,7 @@ subtractButton.onclick = (e) => {
     //   }
     // }
     // console.log(res);
-    start(JSON.parse(v), {} ,false);
+    start(JSON.parse(v), {}, false);
   } catch (e) {
     // alert("JSON error");
     console.log("JSON error");
@@ -224,25 +239,65 @@ document.getElementById("plotButton").dispatchEvent(new Event("click"));
 
 Surreal.surrealConnect();
 
+//css
+// require('bootstrap/dist/css/bootstrap.min.css');
+// require('golden-layout/src/css/goldenlayout-base.css');
+// require('tom-select/dist/css/tom-select.bootstrap4.css');
+// require('./colours.scss');
+// require('./styles/explorer.scss');
+
+// const config = {
+//   content: [{
+//     type: 'stack',
+//     content: [{
+//       type: 'component',
+//       componentName: 'example',
+//       componentState: { text: 'Hello, world!' }
+//     }]
+//   }]
+// };
+
+// // const testGL = 
+// function handleBindComponentEvent(container: ComponentContainer, itemConfig: ResolvedComponentItemConfig): ComponentContainer.BindableComponent {
+//         const componentTypeName = ResolvedComponentItemConfig.resolveComponentTypeName(itemConfig);
+//         if (componentTypeName === undefined) {
+//             throw new Error('handleBindComponentEvent: Undefined componentTypeName');
+//         }
+//         const component = this.createComponent(container, componentTypeName, itemConfig.componentState, this._useVirtualEventBinding);
+//         this._boundComponentMap.set(container, component);
+
+// const myLayout = new GoldenLayout(config, "goldenLayout");
+
+
 const asyncStartBlock = async (dataRaw, dataDiff, refresh) => {
-  Graph.tree2Graph(dataDiff, Graph.diffGraph, refresh, Graph.diffGraphRoots);
   Graph.tree2Graph(dataRaw, Graph.graph, refresh, Graph.graphRoots);
+  if (dataDiff) {
+    Graph.tree2Graph(dataDiff, Graph.diffGraph, refresh, Graph.diffGraphRoots);
+    await GraphMerge.mergeGraphsByAttrs(
+      Graph.diffGraph,
+      Graph.graph,
+      Graph.graph,
+      // Graph.graphRoots[0],
+      // Graph.diffGraphRoots[0],
+      // Graph.graph,
+    );
+  }
 };
 
 export async function start(dataRaw, dataDiff, append = true, refresh = false) {
   // object2Graph(dataRaw, graph, append);
   // await GraphMerge.mergeGraphsByAttrs(
-    //   Graph.diffGraph,
-    //   Graph.graph,
-    //   Graph.graph
-    //   // Graph.graphRoots[0],
-    //   // Graph.diffGraphRoots[0],
-    //   // Graph.graph,
-    // );
-    
-    // GraphMerge2.merge(Graph.diffGraph, Graph.graph, Graph.diffGraphRoots[0]);
-    
-    // Graph.graph = mergedGraph;
+  //   Graph.diffGraph,
+  //   Graph.graph,
+  //   Graph.graph
+  //   // Graph.graphRoots[0],
+  //   // Graph.diffGraphRoots[0],
+  //   // Graph.graph,
+  // );
+
+  // GraphMerge2.merge(Graph.diffGraph, Graph.graph, Graph.diffGraphRoots[0]);
+
+  // Graph.graph = mergedGraph;
   // ReachableCounts.reachableCounts.clear();
   // ReachableCounts.countReachableNodes(graph)
   // ReachableCounts.assignReachableCounts(graph);
@@ -252,15 +307,7 @@ export async function start(dataRaw, dataDiff, append = true, refresh = false) {
   if (append) {
     await asyncStartBlock(dataRaw, dataDiff, refresh);
     // Graph.graph2diffFull(Graph.graph);
-  await GraphMerge.mergeGraphsByAttrs(
-      Graph.diffGraph,
-      Graph.graph,
-      Graph.graph
-      // Graph.graphRoots[0],
-      // Graph.diffGraphRoots[0],
-      // Graph.graph,
-    );
-    
+
     const isRunning = layout?.isRunning() ?? true;
     layout?.kill();
     const v = parseFloat(document.getElementById("layoutInput")["value"]);
