@@ -116,19 +116,22 @@ export function setSearchQuery(query: string, selection: number) {
   }
 
   let suggestions = graph.nodes().filter((n) => n === query);
-  if (suggestions.length === 0) {
-    const finds = findInclusions(LoadFile.fileText[0], query);
-    suggestions = graph
-      .nodes()
-      .map((n) => {
-        return {
-          id: n,
-          // label: graph.getNodeAttribute(n, "label"),
-          location: graph.getNodeAttribute(n, "location"),
-        };
-      })
-      .filter((n) => testRange(n, finds, graph))
-      .map((n) => n.id);
+  try {
+    if (suggestions.length === 0) {
+      const finds = findInclusions(LoadFile.fileText[0], query);
+      suggestions = graph
+        .nodes()
+        .map((n) => {
+          return {
+            id: n,
+            // label: graph.getNodeAttribute(n, "label"),
+            location: graph.getNodeAttribute(n, "location"),
+          };
+        })
+        .filter((n) => testRange(n, finds, graph))
+        .map((n) => n.id);
+    }
+  } catch (e) {
   }
   const strings = query.split(";;");
   for (const string of strings) {
