@@ -43,6 +43,10 @@ Not even alpha. Supports only chromium for the moment!
 
 ![Diff](gif/diff.gif)
 
+6. Searching AST by code
+
+![Code](gif/code-search.gif)
+
 ---
 ### Setup
 ```bash
