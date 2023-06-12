@@ -63,3 +63,5 @@ You're all set!
 ```bash
 firefox localhost:3000
 ```
+
+![Radius](gif/radius.gif)
